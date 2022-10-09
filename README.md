@@ -7,6 +7,680 @@
 - 3. MongoDB
 - 4. Authentication
 
+## 1. Node.js
+
+## [1.1 Introduction to Node.js & setup](https://youtu.be/36R0VXmX8i8)
+
+### What is Node.js & Why Node.js?
+
+![profile2](./images/full-stack-blueprint-2.png)
+
+- fullstack = front-end + back-end
+
+- Node.js is server side environment; not a programming language.
+- helps us to create real time applications
+- It helps to manage files (create, open, read, write, delete and close) on the server.
+- it supports asynchronous programming.
+- it helps to collect form data.
+- It helps to manage (add, modify, delete data) database.
+
+- It utilize Google's V8 engine (developed with C++) which compiles javascript code into machine code
+- a js runtime which allows us to run js in the server
+- node.js does not run on browser but only vanila js
+- window is a global object for browser. before node.js we could use javascript for the browser only but now with the help of node.js we can run javascript for accessing our local machine. try console.log(), window.alert() at the browser and in the terminal.
+
+### 1.2 Environment setup
+
+- check node is already installed or not using the command: node --version or node -v
+- [Node.js](https://nodejs.org/en/) download & install
+- Editor: anything; I prefer [Visual Studio Code](https://code.visualstudio.com/)
+- type node and enter for using Node REPL and try writing some javascript code here like console.log(), mathematical calculations
+- window is a global object in the fornt end; global is the global object in the backend
+
+### [1.3 Node js event loop]
+
+- Node.js is single threaded but non-blocking beacuse of event loop.
+- it is efficient because of its non blocking feature
+- all the events are placed in a stack (first in first out FIFO)
+- Node.js keep running like FIFO, one after one event is handles by node process
+- if any task required time instead of stop and wait it will be passed to callback function and then move to the next task
+- once all the tasks are handled then from the event loop task will be executed
+- synchronous vs asynchronous programming
+- example
+
+  ```js
+  console.log("hello 1");
+  console.log("hello 2");
+  setTimeout(() => {
+    console.log("hello 3");
+  }, 1000);
+  setTimeout(() => {
+    console.log("hello 4");
+  }, 1000);
+  console.log("hello 5");
+  console.log("hello 6");
+
+  // example 2
+  console.log("no need to wait for this task");
+  setTimeout(() => {
+    console.log("first task taking 5 minutes");
+  }, 5000);
+  setTimeout(() => {
+    console.log("second task taking 3 minutes");
+  }, 3000);
+  setTimeout(() => {
+    console.log("third task taking 2 minutes");
+  }, 2000);
+  setTimeout(() => {
+    console.log("fourth task taking 1 minute");
+  }, 1000);
+  console.log("no need to wait for this task");
+  ```
+
+### [1.4 Local module](https://youtu.be/n3F1kaOfyzw)
+
+#### What is module? Types of module?
+
+- we can use es6 import, export by adding "type":"module" in package.json
+- when you have too much code in a single file you would like to separate them in multiple files so that they are reusable and modular.
+- Module is a set of functions or variables.
+- console.log(process) and find the module.exports = {}
+- 3 types of module.
+  - local module (own created module)
+  - built-in-modules (node.js own module)
+  - External modules (3rd party module mainly managed by npm)
+- example 1
+
+  ```js
+  // message.js
+  const SUBJECT = "Node.js";
+
+  const displayInfo = (name) => {
+    console.log(`Welcome ${name}`);
+  };
+
+  module.exports = { SUBJECT, displayInfo };
+
+  // index.js
+  const message = require("./message");
+  console.log(message.SUBJECT);
+  message.displayInfo("Anisul Islam");
+  ```
+
+- example 2
+
+  ```js
+  // message.js
+
+  const SUBJECT = "Node.js";
+  // exports.SUBJECT = "Node.js";
+
+  const displayInfo = (name) => {
+    console.log(`Welcome ${name}`);
+  };
+
+  exports.SUBJECT = SUBJECT;
+  exports.displayInfo = displayInfo;
+
+  // index.js
+
+  // following line will get everything from message module
+  const message = require("./message");
+
+  // following line will get separate items from message module
+  const { SUBJECT, displayInfo } = require("./message");
+  console.log(SUBJECT);
+  displayInfo("anisul");
+
+  // another example
+  exports.add = (num1, num2) => {
+    return num1 + num2;
+  };
+  exports.sub = (num1, num2) => {
+    return num1 - num2;
+  };
+  exports.mul = (num1, num2) => {
+    return num1 * num2;
+  };
+  ```
+
+- example 3
+
+  ```js
+  // converter.js
+  const convertIntoNumber = (text) => {
+    return parseInt(text);
+  };
+
+  module.exports = { convertIntoNumber };
+
+  // index.js
+  const { convertIntoNumber } = require("./converter");
+
+  const price = "27.5";
+
+  console.log(typeof convertIntoNumber(price));
+  ```
+
+### [1.5 Built-in module - os and path module](https://youtu.be/EHo7KNPawhw)
+
+- Example of os module
+
+  ```js
+  // os, path
+  const { totalmem, freemem } = require("os");
+  console.log(totalmem());
+
+  const os = require("os");
+  const osInfo = () => {
+    return {
+      userInfo: os.userInfo(),
+      totalMemory: os.totalmem(),
+      freeMemory: os.freemem(),
+      hostname: os.hostname(),
+      osType: os.type(),
+      relase: os.release(),
+      platform: os.platform(),
+      architecture: os.arch(),
+      uptime: os.uptime(),
+      cpus: os.cpus(),
+    };
+  };
+  ```
+
+### [1.6 Built-in module - path module]
+
+- Example of path module
+
+```js
+const path = require("path");
+
+const address = "backend-course/path-module.js";
+
+exports.pathInfo = () => {
+  return {
+    __dirname: __dirname,
+    __filename: __filename,
+    directoryName: path.dirname(address),
+    extensionName: path.extname(address),
+    lastPartOfPath: path.basename(address),
+    join: path.join(__dirname + "/views/index.html"),
+  };
+};
+```
+
+### [1.7 Built-in module - url module]
+
+```js
+const url = require("url");
+
+const address = "http://localhost:8080/api/products?maxPrice=300&sortBy=ASC";
+
+// const myUrl = new URL(address);
+// console.log(myUrl.host);
+// console.log(myUrl.hostname);
+// console.log(myUrl.protocol);
+// console.log(myUrl.port);
+// console.log(myUrl.search);
+// console.log(myUrl.href);
+
+console.log(url.parse(address));
+
+const query = url.parse(address).query;
+const data = new URLSearchParams(query);
+console.log(data);
+console.log(data.get("maxPrice"));
+console.log(data.get("sortBy"));
+```
+
+### [1.8 Built-in module - fs module]
+
+- managing file system: create, read, update, rename, delete
+
+```js
+const fs = require("fs");
+console.log(fs);
+
+// creating a file
+fs.writeFile("test.txt", "this is some demo text", (err) => {
+  // if there is 1 if else then use ternary operator
+  if (err) {
+    console.log(err);
+  } else {
+    console.log("File is created successfully");
+  }
+});
+
+// appending data to a file
+fs.appendFile("test.txt", "some extra text is added", (err) => {
+  if (err) {
+    console.log(err);
+  } else {
+    console.log("data is added successfully");
+  }
+});
+
+// reading data from a file
+fs.readFile("test.txt", "utf-8", (err, data) => {
+  if (err) {
+    console.log(err);
+  } else {
+    console.log(data);
+  }
+});
+
+// renaming an existing file
+fs.rename("test.txt", "test2.txt", (err) => {
+  if (err) {
+    console.log(err);
+  } else {
+    console.log("successfully renamed");
+  }
+});
+
+// checking a file exsits or not
+fs.exists("test2.txt", (result) => {
+  if (result) {
+    console.log("file exists");
+  } else {
+    console.log("file does not exist");
+  }
+});
+
+// deleting a file
+fs.unlink("test2.txt", (err) => {
+  if (err) {
+    console.log(err);
+  } else {
+    console.log("file is deleted successfully");
+  }
+});
+```
+
+### [1.9 Built-in module - http module](https://youtu.be/PmLJO403hvc)
+
+- Example of a node.js http server
+
+  ```js
+  // Method 1
+  const http = require("http");
+
+  const PORT = 3000;
+  const hostName = "127.0.0.1";
+
+  const server = http.createServer((req, res) => {
+    // res.end("welcome to the server");
+
+    // end the response with a response message
+    res.end("<h1>welcome to the server</h1>");
+  });
+
+  server.listen(PORT, () => {
+    console.log(`server is running at http://${hostName}:${PORT}`);
+  });
+
+  // Method 2
+  const http = require("http");
+  http
+    .createServer((req, res) => {
+      res.end("<h1> Welcome to your first node server</h1>");
+    })
+    .listen(3000, () => {
+      console.log("server is running");
+    });
+  ```
+
+### [1.10 request, response and status code](https://youtu.be/lHfnjUP-N4E)
+
+- req.url, req.method
+- response can be string, json, html etc.
+- [status code cheatsheet](https://devhints.io/http-status)
+- Example
+
+  ```js
+  // index.js file
+  const http = require("http");
+
+  const PORT = 3000;
+
+  const server = http.createServer((req, res) => {
+    res.writeHead(200, { "Content-Type": "text/plain" });
+    res.write("welcome to the server");
+
+    // if we want to return html as status
+    // res.writeHead(200, { "Content-Type": "text/html" });
+    // res.write("<h1>welcome to the server</h1>");
+
+    res.end();
+  });
+
+  server.listen(PORT, () => {
+    console.log(`server is running at http://localhost:${PORT}`);
+  });
+  ```
+
+### [1.11 External modules | npm crash course](https://youtu.be/A8W1p8suw5I)
+
+- first initialize npm with the command `npm init` then follow the instructions
+- we can also use `npm init -y` command for ignoring the installation instructions
+- npm packages : https://www.npmjs.com/
+- how to install and uninstall npm packages
+- Install https://www.npmjs.com/package/random-fruits-name package
+  and follow the instructions
+
+### [1.12 create node server and deploy on heroku](https://youtu.be/2IFDMvfJJHc)
+
+- [node-server-demo](https://node-server-2022.herokuapp.com/)
+
+- Create 3 html pages inside views folder: index.html, about.html, contact.html
+
+  ```html
+  <!DOCTYPE html>
+  <html lang="en">
+    <head>
+      <meta charset="UTF-8" />
+      <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Document</title>
+
+      <style>
+        body {
+          background-color: bisque;
+        }
+      </style>
+    </head>
+    <body>
+      <nav>
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="/about">About</a></li>
+          <li><a href="/contact">Contact</a></li>
+        </ul>
+      </nav>
+      <h1>This is Home page</h1>
+    </body>
+  </html>
+  ```
+
+- create the server (server) and load the html files based on request url
+
+  ```js
+  const http = require("http");
+  const fs = require("fs");
+  const PORT = 3000;
+
+  const handleReadFile = (fileName, statusCode, req, res) => {
+    fs.readFile(fileName, "utf-8", (err, data) => {
+      if (err) {
+        console.log(err);
+      } else {
+        res.writeHead(statusCode, { "Contant-Type": "text/plian" });
+        res.write(data);
+        res.end();
+      }
+    });
+  };
+  const server = http.createServer((req, res) => {
+    if (req.url === "/" && req.method === "GET") {
+      handleReadFile("./views/index.html", 200, req, res);
+    } else if (req.url === "/about" && req.method === "GET") {
+      handleReadFile("./views/about.html", 200, req, res);
+    } else if (req.url === "/contact" && req.method === "GET") {
+      handleReadFile("./views/contact.html", 200, req, res);
+    } else {
+      handleReadFile("./views/error.html", 404, req, res);
+    }
+  });
+
+  server.listen(PORT, () => {
+    console.log(`Server is running at http://localhost:${PORT}`);
+  });
+  ```
+
+- How to deploy on heroku
+
+  - step1 : const PORT = process.env.PORT || 3000;
+  - step2 : add Procfile -> `web: node index.js`
+  - step3 : npm init -y && npm install nodemon
+  - step4 : follow the steps in heroku
+
+### [1.13 Complete REST API]
+
+```js
+// index.js
+const http = require("http");
+const {
+  getProducts,
+  getProduct,
+  deleteProduct,
+  addProduct,
+  updateProduct,
+} = require("./controllers/products");
+
+const PORT = 8080;
+
+const sendResponse = (statusCode, request, response, data) => {
+  response.writeHead(statusCode, { "Content-Type": "application/json" });
+  response.write(JSON.stringify(data));
+  response.end();
+};
+
+const server = http.createServer(async (request, response) => {
+  if (request.url === "/" && request.method === "GET") {
+    try {
+      sendResponse(200, request, response, {
+        message: "welcome to home route",
+      });
+    } catch (error) {
+      sendResponse(404, request, response, error);
+    }
+  } else if (request.url === "/api/products" && request.method === "GET") {
+    try {
+      const result = await getProducts();
+      sendResponse(200, request, response, result);
+    } catch (error) {
+      sendResponse(404, request, response, error);
+    }
+  } else if (
+    request.url.match(/\/api\/products\/([0-9]+)/) &&
+    request.method === "GET"
+  ) {
+    try {
+      const id = request.url?.split("/")[3];
+      const result = await getProduct(id);
+      sendResponse(200, request, response, result);
+    } catch (error) {
+      sendResponse(404, request, response, error);
+    }
+  } else if (
+    request.url.match(/\/api\/products\/([0-9]+)/) &&
+    request.method === "DELETE"
+  ) {
+    try {
+      const id = request.url?.split("/")[3];
+      const result = await deleteProduct(id);
+      sendResponse(200, request, response, result);
+    } catch (error) {
+      sendResponse(404, request, response, error);
+    }
+  } else if (
+    request.url.match(/\/api\/products\/([0-9]+)/) &&
+    request.method === "PUT"
+  ) {
+    try {
+      const id = request.url?.split("/")[3];
+      const result = await updateProduct(request, id);
+      sendResponse(200, request, response, result);
+    } catch (error) {
+      sendResponse(404, request, response, error);
+    }
+  } else if (request.url === "/api/products" && request.method === "POST") {
+    try {
+      const result = await addProduct(request);
+      sendResponse(201, request, response, result);
+    } catch (error) {
+      sendResponse(404, request, response, error);
+    }
+  } else {
+    response.writeHead(404, { "Content-Type": "application/json" });
+    response.write(
+      JSON.stringify({
+        message: "404 not found",
+      })
+    );
+    response.end();
+  }
+});
+
+server.listen(PORT, () => {
+  console.log(`server is running at http://localhost:${PORT}`);
+});
+
+// controllers/products.js
+let products = require("../models/products");
+
+const getProducts = async () => {
+  return new Promise((resolve, reject) => {
+    resolve(products);
+  });
+};
+
+const getProduct = async (id) => {
+  return new Promise((resolve, reject) => {
+    const product = products.find((product) => product.id === id);
+    product ? resolve(product) : reject(`Product with ${id} Not found`);
+  });
+};
+
+const deleteProduct = async (id) => {
+  return new Promise((resolve, reject) => {
+    const product = products.find((product) => product.id === id);
+    product
+      ? resolve((products = products.filter((product) => product.id !== id)))
+      : reject(`Product with ${id} Not found`);
+  });
+};
+
+const updateProduct = async (request, id) => {
+  return new Promise((resolve, reject) => {
+    try {
+      let body = "";
+      request.on("data", (chunk) => {
+        body += chunk.toString();
+      });
+
+      request.on("end", () => {
+        const parsedData = new URLSearchParams(body);
+        const title = parsedData.get("title") || "";
+        const price = Number(parsedData.get("price"));
+
+        products
+          .filter((product) => product.id === id)
+          .map((product) => {
+            product.title = title;
+            product.price = price;
+          });
+        resolve(products);
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+const addProduct = async (request) => {
+  return new Promise((resolve, reject) => {
+    try {
+      const FORM_URLENCODED = "application/x-www-form-urlencoded";
+      if (request.headers["content-type"] === FORM_URLENCODED) {
+        let body = "";
+        request.on("data", (chunk) => {
+          body += chunk.toString();
+        });
+
+        request.on("end", () => {
+          console.log("all the body data has arrived");
+          const parsedData = new URLSearchParams(body);
+          const title = parsedData.get("title") || "";
+          const price = Number(parsedData.get("price"));
+          const newProduct = {
+            id: new Date().toISOString(),
+            title,
+            price,
+          };
+          products.push(newProduct);
+          resolve(products);
+        });
+      } else {
+        // Use latin1 encoding to parse binary files correctly
+        //nodejs.org/en/knowledge/HTTP/servers/how-to-handle-multipart-form-data/
+        resolve(request.headers["content-type"]);
+        let body = "";
+        request.on("data", (chunk) => {
+          body += chunk.toString();
+        });
+
+        request.on("end", () => {
+          console.log("all the body data has arrived");
+
+          console.log(body);
+          // const title = parsedData.get("title") || "";
+          // const price = Number(parsedData.get("price"));
+          // const newProduct = {
+          //   id: new Date().toISOString(),
+          //   title,
+          //   price,
+          // };
+          // products.push(newProduct);
+          // resolve(products);
+        });
+      }
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
+module.exports = {
+  getProducts,
+  getProduct,
+  deleteProduct,
+  addProduct,
+  updateProduct,
+};
+
+// models/products.js
+let products = [
+  {
+    id: "1",
+    title: "Fjallraven - Foldsack No. 1 Backpack, Fits 15 Laptops",
+    price: 109.95,
+  },
+  {
+    id: "2",
+    title: "Mens Casual Premium Slim Fit T-Shirts ",
+    price: 22.3,
+  },
+  {
+    id: "3",
+    title: "Mens Cotton Jacket",
+    price: 55.99,
+  },
+  {
+    id: "4",
+    title: "Mens Casual Slim Fit",
+    price: 15.99,
+  },
+  {
+    id: "5",
+    title:
+      "John Hardy Women's Legends Naga Gold & Silver Dragon Station Chain Bracelet",
+    price: 695,
+  },
+];
+
+module.exports = products;
+```
+
 ## Express.js
 
 ### 0. Introduction & installation
