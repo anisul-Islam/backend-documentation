@@ -1192,7 +1192,6 @@ router.post("/", authUser, formValidation, addProduct);
 - package `npx espress-generator`
 - create a basic standard scalable folder structure with necessary codes
 
-
 # MongoDB Tutorial
 
 ## 0. SQL VS NoSQL
@@ -1672,4 +1671,24 @@ const products = await Product.find()
   .limit(limit)
   .skip((page - 1) * limit);
 console.log(products);
+```
+
+## 21: export and import data in mongodb atlas
+
+```js
+For json
+mongoimport –uri
+mongoimport --uri="mongodb+srv://<your username>:<your password>@<your cluster>.mongodb.net/sample_supplies" --drop sales.json
+
+mongoexport –uri
+mongoexport --uri="mongodb+srv://<your username>:<your password>@<your cluster>.mongodb.net/sample_supplies" --collection=sales --out=sales.json
+
+Opem the command line and paste it
+mongoexport --uri="mongodb+srv://oss:integrify1234@oss.6kg37.mongodb.net/test" --collection=datas --out=datas.json
+
+for bson
+mongostore – uri
+mongorestore --uri "mongodb+srv://<your username>:<your password>@<your cluster>.mongodb.net/sample_supplies" --drop dump
+mongodump –uri
+mongodump --uri "mongodb+srv://<your username>:<your password>@<your cluster>.mongodb.net/sample_supplies"
 ```
