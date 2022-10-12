@@ -1187,12 +1187,77 @@ export const formValidation = [
 router.post("/", authUser, formValidation, addProduct);
 ```
 
-## 21. Express generator
+## 21. How to upload file (image)
+
+- `npm install express multer`
+- `npm install -D express multer`
+- package.json -> `"start": "nodemon index.js"`
+- create the client part
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <form action="/register" method="post" enctype="multipart/form-data">
+      <input type="file" name="image" />
+      <button type="submit">Register</button>
+    </form>
+  </body>
+</html>
+```
+
+- create the server
+
+```js
+const express = require("express");
+const multer = require("multer");
+
+const app = express();
+
+const port = 8005;
+
+// uploading file
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "uploads/");
+  },
+  filename: function (req, file, cb) {
+    const name = Date.now() + "-" + file.originalname;
+    cb(null, name);
+  },
+});
+
+const upload = multer({ storage: storage });
+
+app.get("/register", (req, res) => {
+  res.status(200).sendFile(__dirname + "/index.html");
+});
+
+app.post("/register", upload.single("image"), (req, res) => {
+  res.status(200).send("user is registered");
+});
+
+app.get("/test", (req, res) => {
+  res.status(200).send("testing api");
+});
+
+app.listen(port, () => {
+  console.log(`server is running at http://localhost:${port}`);
+});
+```
+
+## 22. Express generator
 
 - package `npx espress-generator`
 - create a basic standard scalable folder structure with necessary codes
 
-# MongoDB Tutorial
+## MongoDB Tutorial
 
 ## 0. SQL VS NoSQL
 
