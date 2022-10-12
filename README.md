@@ -1790,7 +1790,9 @@ app.use("/api/v1", userRoute);
 app.get("/test", (req, res) => {
   res.send("testinng route");
 });
+```
 
+```js
 // config/index.js
 require("dotenv").config();
 
@@ -1802,7 +1804,9 @@ exports.dev = {
     port: process.env.SERVER_PORT,
   },
 };
+```
 
+```js
 // config/db.js
 const mongoose = require("mongoose");
 const { dev } = require(".");
@@ -1816,7 +1820,9 @@ exports.connectDB = async () => {
     console.log(error);
   }
 };
+```
 
+```js
 // routes/users.js
 const { registerUser, loginUser } = require("../controllers/users");
 
@@ -1854,7 +1860,9 @@ const userSchema = new Schema({
 });
 
 exports.User = model("Users", userSchema);
+```
 
+```js
 // controllers/users.js
 const { User } = require("../models/user");
 
