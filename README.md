@@ -1761,6 +1761,7 @@ mongodump --uri "mongodb+srv://<your username>:<your password>@<your cluster>.mo
 ## Authentication Tutorial
 
 - [Authorization (403) vs Authentication (401)](http://www.differencebetween.net/technology/difference-between-authentication-and-authorization/)
+- [Authorization (403) vs Authentication (401)](https://stackoverflow.com/questions/3297048/403-forbidden-vs-401-unauthorized-http-responses)
 
 ### Level 1: Database matching
 
