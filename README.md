@@ -1757,3 +1757,139 @@ mongorestore --uri "mongodb+srv://<your username>:<your password>@<your cluster>
 mongodump –uri
 mongodump --uri "mongodb+srv://<your username>:<your password>@<your cluster>.mongodb.net/sample_supplies"
 ```
+
+## Authentication Tutorial
+
+### Level 1: Database matching
+
+- save(), findOne({property: value})
+- if hacker can access our database then our data is too much human readable
+- [password checker online](http://password-checker.online-domain-tools.com/)
+
+```js
+// index.js
+const express = require("express");
+const morgan = require("morgan");
+const { dev } = require("./config");
+const { connectDB } = require("./config/db");
+const userRoute = require("./routes/users");
+
+const app = express();
+const port = dev.app.port || 3002;
+
+app.listen(port, async () => {
+  console.log(`server is running at http://localhost:${port}`);
+  connectDB();
+});
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(morgan("dev"));
+app.use("/api/v1", userRoute);
+
+app.get("/test", (req, res) => {
+  res.send("testinng route");
+});
+
+// config/index.js
+require("dotenv").config();
+
+exports.dev = {
+  db: {
+    url: process.env.MONGO_URL || "mongodb://localhost:27017",
+  },
+  app: {
+    port: process.env.SERVER_PORT,
+  },
+};
+
+// config/db.js
+const mongoose = require("mongoose");
+const { dev } = require(".");
+
+exports.connectDB = async () => {
+  try {
+    await mongoose.connect(dev.db.url);
+    console.log("db is connected");
+  } catch (error) {
+    console.log("db is not connected");
+    console.log(error);
+  }
+};
+
+// routes/users.js
+const { registerUser, loginUser } = require("../controllers/users");
+
+const router = require("express").Router();
+
+router.post("/register", registerUser);
+
+router.post("/login", loginUser);
+
+module.exports = router;
+
+// models/user.js
+const { model, Schema } = require("mongoose");
+
+const userSchema = new Schema({
+  email: {
+    type: String,
+    required: [true, "user email is reuired"],
+    trim: true,
+    lowercase: true,
+    unique: true,
+    validate: {
+      validator: function (v) {
+        const emailRegex = /^([\w-\.]+@([\w-]+\.)+[\w-]{2,4})?$/;
+        return emailRegex.test(v);
+      },
+      message: (props) => `${props.value} is not a valid email address!`,
+    },
+  },
+  password: {
+    type: String,
+    required: [true, "user password is reuired"],
+    minlength: [3, "minimum length for password is 3"],
+  },
+});
+
+exports.User = model("Users", userSchema);
+
+// controllers/users.js
+const { User } = require("../models/user");
+
+const registerUser = async (req, res) => {
+  try {
+    const newUser = new User({
+      email: req.body.email,
+      password: req.body.password,
+    });
+    const userData = await newUser.save();
+
+    if (userData) {
+      res.status(201).send({ message: "registration successful" });
+    } else {
+      res.status(404).send({ message: "registration not successful" });
+    }
+  } catch (error) {
+    res.status(500).send({
+      message: error.message,
+    });
+  }
+};
+
+const loginUser = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const user = await User.findOne({ email: email });
+    if (user && user.password === password) {
+      res.status(200).json({ status: "valid user" });
+    } else {
+      res.status(404).json({ status: "Not valid user" });
+    }
+  } catch (error) {
+    res.status(500).json(error.message);
+  }
+};
+module.exports = { registerUser, loginUser };
+```
