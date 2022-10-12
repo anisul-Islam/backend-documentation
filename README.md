@@ -1760,6 +1760,8 @@ mongodump --uri "mongodb+srv://<your username>:<your password>@<your cluster>.mo
 
 ## Authentication Tutorial
 
+- [Authorization (403) vs Authentication (401)](http://www.differencebetween.net/technology/difference-between-authentication-and-authorization/)
+
 ### Level 1: Database matching
 
 - save(), findOne({property: value})
@@ -1890,14 +1892,90 @@ const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email: email });
-    if (user && user.password === password) {
-      res.status(200).json({ status: "valid user" });
+    if (user) {
+      if (user.password === password) {
+        res.status(200).json({ status: "valid user" });
+      } else {
+        res.status(401).json({ status: "401 Unauthorized, Not valid user" });
+      }
     } else {
-      res.status(404).json({ status: "Not valid user" });
+      res.status(404).json({ status: "User not found" });
     }
   } catch (error) {
     res.status(500).json(error.message);
   }
 };
+module.exports = { registerUser, loginUser };
+```
+
+### Level 2: Hashing + salting password
+
+- we can hash the password with some random number(salting)
+- install bcrypt npm package `npm install bcrypt`
+
+```js
+// controllers/users.js
+const { User } = require("../models/user");
+
+const bcrypt = require("bcrypt");
+const saltRounds = 10;
+
+const securePassword = async (password) => {
+  try {
+    return await bcrypt.hash(password, saltRounds);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+const comparePassword = async (password, hashedPassword) => {
+  try {
+    return await bcrypt.compare(password, hashedPassword);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+const registerUser = async (req, res) => {
+  try {
+    const hashPassword = await securePassword(req.body.password);
+    const newUser = new User({
+      email: req.body.email,
+      password: hashPassword,
+    });
+    const userData = await newUser.save();
+
+    if (userData) {
+      res.status(201).send({ message: "registration successful" });
+    } else {
+      res.status(404).send({ message: "registration not successful" });
+    }
+  } catch (error) {
+    res.status(500).send({
+      message: error.message,
+    });
+  }
+};
+
+const loginUser = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const user = await User.findOne({ email: email });
+    if (user) {
+      const isValid = await comparePassword(password, user.password);
+      if (isValid) {
+        res.status(200).json({ status: "valid user" });
+      } else {
+        res.status(401).json({ status: "401 Unauthorized, Not valid user" });
+      }
+    } else {
+      res.status(404).json({ status: "User not found" });
+    }
+  } catch (error) {
+    res.status(500).json(error.message);
+  }
+};
+
 module.exports = { registerUser, loginUser };
 ```
