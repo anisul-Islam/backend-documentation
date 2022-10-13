@@ -1188,7 +1188,7 @@ export const formValidation = [
 router.post("/", authUser, formValidation, addProduct);
 ```
 
-## 21. How to upload file (image)
+## 21. How to upload file (image, video etc.)
 
 - `npm install express multer`
 - `npm install -D express multer`
@@ -1757,6 +1757,409 @@ mongostore – uri
 mongorestore --uri "mongodb+srv://<your username>:<your password>@<your cluster>.mongodb.net/sample_supplies" --drop dump
 mongodump –uri
 mongodump --uri "mongodb+srv://<your username>:<your password>@<your cluster>.mongodb.net/sample_supplies"
+```
+
+## API Documentaion with Swagger
+
+- install packages `npm init -y && npm install express lowdb morgan uuid cors swagger-jsdoc swagger-ui-express`
+- we can create api doc anywhere - routes/controllers
+
+- lets create the server
+
+```js
+const express = require("express");
+const cors = require("cors");
+const morgan = require("morgan");
+const bodyParser = require("body-parser");
+const swaggerUi = require("swagger-ui-express");
+const swaggerJsdoc = require("swagger-jsdoc");
+
+const { connectDB } = require("./config/db");
+const productRouter = require("./routes/products");
+
+const port = process.env.port || 3002;
+const app = express();
+
+app.listen(port, async () => {
+  console.log(`server is running at http://localhost:${port}`);
+  await connectDB();
+});
+
+// swagger
+const options = {
+  definition: {
+    openapi: "3.0.0",
+    info: {
+      title: "Product API",
+      version: "1.0.0",
+      description: "A REST Product API",
+    },
+    servers: [
+      {
+        url: "http://localhost:3002",
+      },
+    ],
+  },
+  apis: ["./controllers/*.js"],
+};
+
+const openapiSpecification = swaggerJsdoc(options);
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(openapiSpecification));
+
+app.use(cors());
+app.use(morgan("dev"));
+// for parsing application/xwww-form-urlencoded
+app.use(bodyParser.urlencoded({ extended: true }));
+// for parsing application/json
+app.use(bodyParser.json());
+
+app.use("/products", productRouter);
+
+app.get("/test", (req, res) => {
+  res.status(200).send("testing routes working fine");
+});
+```
+
+- lets create the product routes
+
+```js
+const router = require("express").Router();
+
+const {
+  getProducts,
+  getProduct,
+  addProduct,
+  deleteProduct,
+  updateProduct,
+} = require("../controllers/products");
+
+router.get("/", getProducts);
+router.get("/:id", getProduct);
+router.post("/", addProduct);
+router.put("/:id", updateProduct);
+router.delete("/:id", deleteProduct);
+
+module.exports = router;
+```
+
+- lets do the configuration for database and others
+
+```js
+// config/index.js
+require("dotenv").config();
+
+exports.dev = {
+  db: {
+    url: process.env.DB_URL || "",
+  },
+  app: {
+    port: process.env.SERVER_PORT,
+  },
+};
+```
+
+```js
+// config/db.js
+const mongoose = require("mongoose");
+const { dev } = require(".");
+
+// connect mongodb database
+exports.connectDB = async () => {
+  try {
+    await mongoose.connect(dev.db.url);
+    console.log("db is connected");
+  } catch (error) {
+    console.log("db is not connected");
+    console.log(error);
+    process.exit(1);
+  }
+};
+```
+
+- lets create the model
+
+```js
+// models/products.js
+const mongoose = require("mongoose");
+
+const productsSchema = new mongoose.Schema({
+  id: {
+    type: String,
+    required: true,
+  },
+  title: {
+    type: String,
+    required: [true, "product title is required"],
+    trim: true,
+    minlength: [3, "product title length must be atleast 3 characters"],
+  },
+  price: {
+    type: Number,
+    required: [true, "product price is required"],
+  },
+  rating: {
+    type: Number,
+    required: [true, "product rating is required"],
+  },
+});
+
+exports.Product = mongoose.model("Products", productsSchema);
+```
+
+- lets create the API Documentation
+
+```js
+// controllers/product.js
+const { v4: uuidv4 } = require("uuid");
+
+const { Product } = require("../models/products");
+
+// create a schema for the model
+/**
+ *@swagger
+ *components:
+ *  schemas:
+ *    Product:
+ *      type: object
+ *      required:
+ *        - title
+ *        - price
+ *        - rating
+ *      properties:
+ *        id:
+ *          type: string
+ *          description: auto generated id of the product
+ *        title:
+ *          type: string
+ *          description: title of the product
+ *        price:
+ *          type: number
+ *          description: price of the product
+ *        rating:
+ *          type: number
+ *          description: rating of the product
+ *      example:
+ *          id: ahiahuhauhuahuahuha
+ *          title: iphone14
+ *          price: 1450.55
+ *          rating: 4.5
+ */
+
+// grouping requests into tags
+/**
+ * @swagger
+ * tags:
+ *   name: Products
+ *   description: E-Commerce app
+ */
+
+/**
+ * @swagger
+ * /products:
+ *  get:
+ *    summary: Returns all the products
+ *    tags: [Products]
+ *    responses:
+ *      200:
+ *        description: all the products
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: array
+ *              items:
+ *                $ref: '#/components/schemas/Product'
+ */
+
+const getProducts = async (req, res) => {
+  try {
+    const products = await Product.find();
+    res.status(200).send(products);
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+};
+
+/**
+ * @swagger
+ * /products/{id}:
+ *  get:
+ *    summary: get the product with id
+ *    tags: [Products]
+ *    parameters:
+ *      - in : path
+ *        name : id
+ *        schema:
+ *          type: string
+ *        required: true
+ *        description: product id
+ *    responses:
+ *      200:
+ *        description: the product with id
+ *        content:
+ *          application/json:
+ *            schema:
+ *                $ref: '#/components/schemas/Product'
+ *      404:
+ *        description: the product with id was not found
+ */
+const getProduct = async (req, res) => {
+  try {
+    const product = await Product.findOne({ id: req.params.id });
+    if (!product) {
+      res.status(404).send({
+        message: `product is not found with the id ${req.params.id}`,
+      });
+    } else {
+      res.status(200).send(product);
+    }
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+};
+
+/**
+ * @swagger
+ * /products:
+ *  post:
+ *    summary: create a new product
+ *    tags: [Products]
+ *    requestBody:
+ *        required: true
+ *        content:
+ *          application/json:
+ *            schema:
+ *                $ref: '#/components/schemas/Product'
+ *    responses:
+ *      201:
+ *        description: the product was created
+ *        content:
+ *          application/json:
+ *            schema:
+ *                $ref: '#/components/schemas/Product'
+ *      404:
+ *        description: the product with id was not found
+ *      500:
+ *        description: server error
+ */
+
+const addProduct = async (req, res) => {
+  try {
+    const newProduct = new Product({
+      id: uuidv4(),
+      title: req.body.title,
+      price: parseInt(req.body.price),
+      rating: parseInt(req.body.rating),
+    });
+    const productData = await newProduct.save();
+
+    if (productData) {
+      res.status(201).send(productData);
+    } else {
+      res.status(404).send({ message: "product data is not saved" });
+    }
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+};
+
+/**
+ * @swagger
+ * /products/{id}:
+ *  put:
+ *    summary: update the product with id
+ *    tags: [Products]
+ *    parameters:
+ *      - in : path
+ *        name : id
+ *        schema:
+ *          type: string
+ *        required: true
+ *        description: product id
+ *    requestBody:
+ *        required: true
+ *        content:
+ *          application/json:
+ *            schema:
+ *                $ref: '#/components/schemas/Product'
+ *    responses:
+ *      200:
+ *        description: the product was updated
+ *      404:
+ *        description: the product with id was not found
+ *      500:
+ *        description: server error
+ */
+const updateProduct = async (req, res) => {
+  try {
+    const product = await Product.find({ id: req.params.id });
+    if (product) {
+      await Product.updateOne(
+        { id: req.params.id },
+        {
+          $set: {
+            title: req.body.title,
+            price: Number(req.body.price),
+            rating: Number(req.body.rating),
+          },
+        }
+      );
+      res.status(200).send({
+        message: `product is updated successfully`,
+      });
+    } else {
+      res.status(404).send({
+        message: `product is not found with the id ${req.params.id}`,
+      });
+    }
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+};
+
+/**
+ * @swagger
+ * /products/{id}:
+ *  delete:
+ *    summary: delete the product with id
+ *    tags: [Products]
+ *    parameters:
+ *      - in : path
+ *        name : id
+ *        schema:
+ *          type: string
+ *        required: true
+ *        description: product id
+ *    responses:
+ *      200:
+ *        description: the product was deleted
+ *      404:
+ *        description: the product with id was not found
+ */
+const deleteProduct = async (req, res) => {
+  try {
+    const product = await Product.find({ id: req.params.id });
+    if (product) {
+      await Product.deleteOne({ id: req.params.id });
+      res.status(200).send({
+        message: `product is deleted successfully`,
+      });
+    } else {
+      res.status(404).send({
+        message: `product is not found with the id ${req.params.id}`,
+      });
+    }
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+};
+
+module.exports = {
+  getProducts,
+  getProduct,
+  addProduct,
+  updateProduct,
+  deleteProduct,
+};
 ```
 
 ## Authentication Tutorial
