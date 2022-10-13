@@ -980,6 +980,7 @@ app.get("/products", (req, res) => {
 
 ## 13. Request Object - body data & HTTP methods: POST
 
+- **[handling-any-post-data-in-express](https://codex.so/handling-any-post-data-in-express)**
 - request with json data / form data inside body - req.body.parameterName
 
 ```js
