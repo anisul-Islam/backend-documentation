@@ -1228,8 +1228,8 @@ const storage = multer.diskStorage({
     cb(null, "uploads/");
   },
   filename: function (req, file, cb) {
-    const name = Date.now() + "-" + file.originalname;
-    cb(null, name);
+    //original name helps us to get the file extension
+    cb(null, Date.now() + "-" + file.originalname);
   },
 });
 
@@ -1871,6 +1871,10 @@ const { User } = require("../models/user");
 
 const registerUser = async (req, res) => {
   try {
+    // check user already exist or not
+    const user = await User.findOne({ email: req.body.email });
+    if (user) return res.status(400).send("User already exists");
+
     const newUser = new User({
       email: req.body.email,
       password: req.body.password,
@@ -1939,6 +1943,10 @@ const comparePassword = async (password, hashedPassword) => {
 
 const registerUser = async (req, res) => {
   try {
+    // check user already exist or not
+    const user = await User.findOne({ email: req.body.email });
+    if (user) return res.status(400).send("User already exists");
+
     const hashPassword = await securePassword(req.body.password);
     const newUser = new User({
       email: req.body.email,
@@ -1980,3 +1988,5 @@ const loginUser = async (req, res) => {
 
 module.exports = { registerUser, loginUser };
 ```
+
+### Level 3: Session based authentication
