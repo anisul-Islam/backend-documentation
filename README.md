@@ -683,7 +683,7 @@ module.exports = products;
 
 ## Express.js
 
-### 0. Introduction & installation
+### [2.0 Introduction & installation]
 
 - always check the documentation of [express.js](https://www.npmjs.com/package/express)
 - Express.js is a node.js framework which makes life easier
@@ -714,7 +714,7 @@ module.exports = products;
 - download & install VSCode editor
 - download & install insomnia/postman/ThunderClient extension
 
-## 1. Bootstraping the project
+### [2.1 Bootstraping the project]
 
 - initialize package.json the package manager: npm init -yes
 - initialize tsconfig.json the typescript manager: tsc --init and change the target as ES2017 in tsconfig.json
@@ -723,7 +723,7 @@ module.exports = products;
 - add a README.md file
 - add ESLint setup
 
-## 2. Create first express server
+### [2.2 Create first express server]
 
 - create the server example 1:
 
@@ -739,7 +739,7 @@ app.listen(port, () => {
 });
 ```
 
-## 3. Run express server
+### [2.3 Run express server]
 
 - how to run the server:
   - tsc index.ts and then node index.js
@@ -747,7 +747,7 @@ app.listen(port, () => {
   - nodemon index.ts
   - npm start -> add script in package.json -> "start": "nodemon index.ts"
 
-## 4. Set environment variables
+## [2.4 Set environment variables]
 
 - check the own doc for env setup
 - create .env file && add .env file to .gitignore file
@@ -770,12 +770,12 @@ app.listen(port, () => {
 });
 ```
 
-## 5. API
+## [2.5 API]
 
 - what is API? why API?
 - HTTP methods
 
-## 6. HTTP methods: handle GET request & api testing
+## [2.6 HTTP methods: handle GET request & api testing]
 
 - http methods
 - http status code
@@ -802,7 +802,7 @@ app.listen(port, () => {
 });
 ```
 
-## 7. Response object
+## [2.7 Response object]
 
 - response can be text, html, json
 - res.send("some text here");
@@ -837,7 +837,7 @@ app.get("/products", (request: Request, response: Response) => {
 });
 ```
 
-## 8. find path of a file
+## [2.8 find path of a file]
 
 - create a util folder -> getPath.ts
 
@@ -858,7 +858,7 @@ app.get("/", (request: Request, response: Response) => {
 });
 ```
 
-## 9. Handling error - client and server error
+## [2.9 Handling error - client and server error]
 
 - try to access a file which is not linked or created properly. it will give a server error
 
@@ -879,7 +879,7 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 });
 ```
 
-## 10. Request Object - route parameter
+## [2.10 Request Object - route parameter]
 
 - request with route parameters - req.params.parameterName
 
@@ -899,7 +899,7 @@ app.get("/products/:id", (request: Request, response: Response) => {
 });
 ```
 
-## 11. Request Object - query parameter
+## [2.11 Request Object - query parameter]
 
 - request with query parameter - req.query.parameterName
 - query parameter has question mark; search something on google.
@@ -967,7 +967,7 @@ app.get("/products", (req, res) => {
 });
 ```
 
-## 12. Request Object - header requests
+## [2.12 Request Object - header requests]
 
 - example of how to get data header requests
 
@@ -978,7 +978,7 @@ app.get("/products", (req, res) => {
   });
   ```
 
-## 13. Request Object - body data & HTTP methods: POST
+## [2.13 Request Object - body data & HTTP methods: POST]
 
 - **[handling-any-post-data-in-express](https://codex.so/handling-any-post-data-in-express)**
 - request with json data / form data inside body - req.body.parameterName
@@ -1020,7 +1020,7 @@ app.post("/products", (request: Request, response: Response) => {
   });
   ```
 
-## 14. HTTP methods: handle DELETE request & api testing
+## [2.14 HTTP methods: handle DELETE request & api testing]
 
 ```js
 app.delete("/products/:id", (request: Request, response: Response) => {
@@ -1038,9 +1038,9 @@ app.delete("/products/:id", (request: Request, response: Response) => {
 });
 ```
 
-## 15. HTTP methods: handle PUT request & api testing
+## [2.15 HTTP methods: handle PUT request & api testing]
 
-## 16. express Router & path shotcut
+## [2.16 express Router & path shotcut]
 
 - use morgan package for getting more info about routing on console
 
@@ -1063,7 +1063,7 @@ import productRouter from "./routes/products";
 app.use("/api/products", productRouter);
 ```
 
-## 17. MVC Architecture - SOC
+## [2.17 MVC Architecture - SOC]
 
 - separate routes
 - separate logics with controllers
@@ -1088,7 +1088,7 @@ export let products = [
 ];
 ```
 
-## 18. Regular expression and wild card
+## [2.18 Regular expression and wild card]
 
 ```js
 router.get("/:id([0-9]+)", getProduct);
@@ -1122,7 +1122,7 @@ router.get("*", (req, res) => {
 });
 ```
 
-## 19. Middleware and its type
+## [2.19 Middleware and its type]
 
 - what is middleware?
 - why middleware?
@@ -1164,7 +1164,7 @@ export const addProduct = (request: Request, response: Response) => {
 };
 ```
 
-## 20. Server side validation with express-validator
+## [2.20 Server side validation with express-validator]
 
 - `npm i express-validator @types/express-validator`
 
@@ -1188,7 +1188,7 @@ export const formValidation = [
 router.post("/", authUser, formValidation, addProduct);
 ```
 
-## 21. How to upload file (image, video etc.)
+## [2.21 How to upload file (image, video etc.)]
 
 - `npm install express multer`
 - `npm install -D express multer`
@@ -1253,10 +1253,62 @@ app.listen(port, () => {
 });
 ```
 
-## 22. Express generator
+## [2.22 Express generator]
 
 - package `npx espress-generator`
 - create a basic standard scalable folder structure with necessary codes
+
+## [2.23 cookie]
+
+- to make http request stateful (have some info stored about api call like user is signed in or not) , by default http api call are stateless
+- keep track of user activity
+- `var cookieParser = require("cookie-parser");`
+- `app.use(cookieParser());`
+
+```js
+const router = require("express").Router();
+let products = [
+  {
+    id: 1,
+    title: "Iphone 14",
+    price: 1500,
+  },
+  {
+    id: 2,
+    title: "Iphone 12",
+    price: 700,
+  },
+  {
+    id: 3,
+    title: "Iphone 13",
+    price: 1200,
+  },
+];
+
+// middleware example
+const isLoggedIn = (req, res, next) => {
+  req.cookies.login ? next() : res.redirect("/");
+};
+
+router.get("/login", (req, res) => {
+  res.cookie("login", true, {
+    maxAge: 10000,
+  });
+  res.send("logged in");
+});
+
+router.get("/", isLoggedIn, (req, res) => {
+  res.send(products);
+});
+
+router.get("/:id", isLoggedIn, (req, res) => {
+  const id = parseInt(req.params.id);
+  const product = products.find((product) => product.id === id);
+  res.send(product);
+});
+```
+
+## [2.24 session]
 
 ## MongoDB Tutorial
 
