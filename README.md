@@ -2446,3 +2446,731 @@ module.exports = { registerUser, loginUser };
 ```
 
 ### Level 3: Session based authentication
+
+### Level 4: Token based authentication: MERN Project
+
+- backend api planning
+
+```js
+// API Planning
+// 1. Register an user
+/*
+POST: http://localhost:3030/api/users/register
+{
+  "name" : "xyz", // minimum 2 characters, required
+  "email" : "xyz@gmail.com", // isEmail or not, required
+  "password" : "123456", // minimum 6 characters long, required
+  "phone" : "04067548948", // optional
+}
+*/
+// 2. Login an user
+/*
+POST: http://localhost:3030/api/users/login
+{
+  "email" : "xyz@gmail.com", // isEmail or not, required
+  "password" : "123456", // minimum 6 characters long, required
+}
+// 3. User Profile
+/*
+POST: http://localhost:3030/api/users/profile
+{
+  "_id" : "ag7dggha8ahag7ag7ag", 
+  "name" : "xyz", 
+  "email" : "xyz@gmail.com", 
+  "phone" : "04067548948", 
+}
+*/
+```
+
+#### step1: create the server
+
+- `npm init -y && npm install express nodemon`
+
+```js
+const express = require("express");
+
+const app = express();
+
+const port = 3031;
+
+app.listen(port, () => {
+  console.log(`app is running at http://localhost:${port}`);
+});
+```
+
+- add the script in package.json: `"start":"nodemon index.js"`
+- run the app: `npm start`
+
+#### step2: format the console with chalk package
+
+- `npm install -D chalk@^4.1.2`
+
+```js
+const express = require("express");
+const chalk = require("chalk");
+
+const app = express();
+
+const port = 3030;
+
+app.listen(port, () => {
+  console.log(chalk.blue(`app is running at http://localhost:${port}`));
+});
+```
+
+#### step3: Prettier formatter and ESLint Linter setup (check my github for setup)
+
+#### step4: config .env variables
+
+- npm install dotenv
+
+```js
+// .env
+SERVER_PORT = 3030;
+
+// config/index.js
+require("dotenv").config();
+const dev = {
+  app: {
+    serverPort: process.env.SERVER_PORT,
+  },
+};
+module.exports = dev;
+```
+
+- use the port from index.js file
+
+#### step5: Adding gitignore and README.md file
+
+#### step6: health route, morgan and cors setup
+
+- add a health checking route
+
+```js
+app.get("/test", (req, res) => {
+  return res.send("testing API");
+});
+```
+
+- install morgan http request logger and cors
+
+```js
+const morgan = require("morgan");
+const cors = require("cors");
+app.use(morgan("dev"));
+app.use(
+  cors({
+    credentials: true,
+    origin: "http://localhost:3000",
+  })
+);
+```
+
+#### step7: Error handling middleware setup
+
+```js
+// error handing middleware
+app.use((req, res, next) => {
+  return res.status(404).send({
+    success: false,
+    message: "Route not found",
+  });
+});
+
+// error handing middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  return res.status(200).send({
+    success: false,
+    message: err.message,
+  });
+});
+```
+
+#### step8: User Route setup
+
+- create routes as planned: /api/users/register, /api/users/login, /api/users/profile
+
+```js
+app.post("/api/users/register", (req, res) => {
+  try {
+    return res.status(201).send({
+      success: true,
+      message: "user was registered",
+    });
+  } catch (error) {
+    return res.status(500).send({
+      success: false,
+      message: error.message,
+    });
+  }
+});
+app.post("/api/users/login", (req, res) => {
+  try {
+    return res.status(200).send({
+      success: true,
+      message: "user was logged In",
+    });
+  } catch (error) {
+    return res.status(500).send({
+      success: false,
+      message: error.message,
+    });
+  }
+});
+app.get("/api/users/profile", (req, res) => {
+  try {
+    return res.status(200).send({
+      success: true,
+      message: "user profile was returned",
+    });
+  } catch (error) {
+    return res.status(500).send({
+      success: false,
+      message: error.message,
+    });
+  }
+});
+```
+
+#### step9: MVC Architecture
+
+- create controllers, routes, models folder
+
+```js
+// index.js
+app.use("/api/users", userRoutes);
+
+// users.js route
+const express = require("express");
+
+const {
+  registerUser,
+  loginUser,
+  getUserProfile,
+} = require("../controllers/user");
+
+const userRoutes = express.Router();
+
+userRoutes.post("/register", registerUser);
+
+userRoutes.post("/login", loginUser);
+
+userRoutes.get("/profile", getUserProfile);
+
+module.exports = userRoutes;
+
+// user.js controllers
+const registerUser = (req, res) => {
+  try {
+    return res.status(201).send({
+      success: true,
+      message: "user was registered",
+    });
+  } catch (error) {
+    return res.status(500).send({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+const loginUser = (req, res) => {
+  try {
+    return res.status(200).send({
+      success: true,
+      message: "user was logged In",
+    });
+  } catch (error) {
+    return res.status(500).send({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+const getUserProfile = (req, res) => {
+  try {
+    return res.status(200).send({
+      success: true,
+      message: "user profile was returned",
+    });
+  } catch (error) {
+    return res.status(500).send({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+module.exports = { registerUser, loginUser, getUserProfile };
+```
+
+#### step10: Adding helper function inside helper folder
+
+```js
+// helper/responseHelper.js
+exports.errorResponse = (res, statusCode, message) => {
+  return res.status(statusCode).send({
+    success: false,
+    message: message,
+  });
+};
+
+exports.successResponse = (res, statusCode, message, data) => {
+  return res.status(statusCode).send({
+    success: true,
+    message: message,
+    data: data,
+  });
+};
+
+// user.js controller
+const { successResponse, errorResponse } = require("../helper/responseHelper");
+
+const registerUser = (req, res) => {
+  try {
+    return successResponse(res, 201, "user was registered");
+  } catch (error) {
+    return errorResponse(res, 500, error.message);
+  }
+};
+
+const loginUser = (req, res) => {
+  try {
+    return successResponse(res, 200, "user was logged In");
+  } catch (error) {
+    return errorResponse(res, 500, error.message);
+  }
+};
+
+const getUserProfile = (req, res) => {
+  try {
+    return successResponse(res, 200, "user profile was returned");
+  } catch (error) {
+    return errorResponse(res, 500, error.message);
+  }
+};
+
+module.exports = { registerUser, loginUser, getUserProfile };
+```
+
+#### step11: Adding wild card for universal routes
+
+```js
+// remember it has to be always in the end
+postRoute.use("*", handleRouteNotFound);
+
+// inside controllers/user.js
+const handleRouteNotFound = async (req, res) => {
+  return errorResponse(res, 404, "route not found");
+};
+```
+
+#### step12: Getting user register data in controller
+
+```js
+// add middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// user.js controller inside registerUser handler
+const registerUser = (req, res) => {
+  try {
+    const { name, email, password, phone } = req.body;
+
+    if (!name || !email || !password || !phone)
+      return errorResponse(
+        res,
+        400,
+        "name, email, password, phone is required"
+      );
+
+    if (password.length < 6)
+      return errorResponse(res, 400, "Minimum Password length is 6 characters");
+
+    return successResponse(res, 201, "user was registered", {
+      name,
+      email,
+      password,
+      phone,
+    });
+  } catch (error) {
+    return errorResponse(res, 500, error.message);
+  }
+};
+```
+
+#### step13: validate user register data in controller
+
+- `npm install express-validator`
+
+```js
+// validator/user.js
+const { check, validationResult } = require("express-validator");
+
+exports.registerUserValidator = [
+  check("name")
+    .notEmpty()
+    .withMessage("Name is missing")
+    .isLength({ min: 3 })
+    .withMessage("not a valid Name"),
+  check("email")
+    .notEmpty()
+    .withMessage("Email is missing")
+    .normalizeEmail()
+    .isEmail()
+    .withMessage("not a valid email"),
+  check("password")
+    .notEmpty()
+    .withMessage("Password is missing")
+    .isLength({ min: 6 })
+    .withMessage("minimum 6 characters for password"),
+
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      const validationErrors = {};
+      const allErrors = errors.array();
+      allErrors.forEach((error) => {
+        validationErrors[error.param] = error.msg;
+      });
+
+      return res.status(400).json({
+        validationErrors,
+      });
+    }
+    return next();
+  },
+];
+exports.loginUserValidator = [
+  check("email")
+    .notEmpty()
+    .withMessage("Email is missing")
+    .normalizeEmail()
+    .isEmail()
+    .withMessage("not a valid email"),
+  check("password")
+    .notEmpty()
+    .withMessage("Password is missing")
+    .isLength({ min: 6 })
+    .withMessage("minimum 6 characters for password"),
+
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      const validationErrors = {};
+      const allErrors = errors.array();
+      allErrors.forEach((error) => {
+        validationErrors[error.param] = error.msg;
+      });
+
+      return res.status(400).json({
+        validationErrors,
+      });
+    }
+    return next();
+  },
+];
+```
+
+#### step14: hash the password with bcrypt
+
+- `npm install bcrypt`
+
+```js
+const bcrypt = require("bcrypt");
+// for creating hash password
+const hashedPassword = await bcrypt.hash(password, 10);
+
+// for comparing the password
+const isPasswordMatched = await bcrypt.compare(password, hashPassword);
+```
+
+#### step15: connect mongodb atlas database
+
+- `npm install mongoose`
+
+```js
+// add the mongodb atlas url in .env file
+// config/index.js
+require("dotenv").config();
+const dev = {
+  app: {
+    serverPort: process.env.SERVER_PORT,
+  },
+  db: {
+    url: process.env.MONGO_URL || "mongodb://127.0.0.1:27017/jwtDB",
+  },
+};
+module.exports = dev;
+
+// config/db.js
+const mongoose = require("mongoose");
+
+const dev = require(".");
+exports.connectDB = async () => {
+  try {
+    await mongoose.connect(dev.db.url);
+    console.log("db is connected");
+  } catch (error) {
+    console.log("db is not connected");
+    console.log(error);
+    process.exit(1);
+  }
+};
+```
+
+#### step16: create schema and model
+
+```js
+const { Schema, model } = require("mongoose");
+
+const userSchema = new Schema({
+  name: {
+    type: String,
+    required: [true, "user name is required"],
+    trim: true,
+  },
+  email: {
+    type: String,
+    required: [true, "user email is required"],
+    trim: true,
+    unique: true,
+  },
+  password: {
+    type: String,
+    required: [true, "user password is required"],
+  },
+  phone: {
+    type: String,
+  },
+});
+
+const User = model("Users", userSchema);
+module.exports = User;
+```
+
+#### step17: save the user in database
+
+```js
+// registerUser  controller
+const registerUser = async (req, res) => {
+  try {
+    const { name, email, password, phone } = req.body;
+
+    // check input are missing or not
+    if (!name || !email || !password)
+      return errorResponse(res, 400, "name, email, password is required");
+
+    // check password length >= 6
+    if (password.length < 6)
+      return errorResponse(res, 400, "Minimum Password length is 6 characters");
+
+    // check user already exist or not with email
+    const exsitingUser = await User.findOne({ email });
+    if (exsitingUser) {
+      return errorResponse(
+        res,
+        400,
+        "user already exists with this email. Login Please."
+      );
+    }
+
+    // hashing user plain password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // create the user
+    const newUser = new User({
+      name,
+      email,
+      password: hashedPassword,
+      phone,
+    });
+
+    await newUser.save();
+    return successResponse(res, 201, "user was registered");
+  } catch (error) {
+    return errorResponse(res, 500, error.message);
+  }
+};
+```
+
+#### step18: userLogin implementation
+
+```js
+const loginUser = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // check input are missing or not
+    if (!email || !password)
+      return errorResponse(res, 400, "email, password is required");
+
+    // check password length >= 6
+    if (password.length < 6)
+      return errorResponse(res, 400, "Minimum Password length is 6 characters");
+
+    // check user already exist or not with email
+    const exsitingUser = await User.findOne({ email });
+    if (!exsitingUser) {
+      return errorResponse(
+        res,
+        400,
+        "No User exist with this eamil. Please register/signup first"
+      );
+    }
+
+    // compare password
+    const isPasswordMatched = await bcrypt.compare(
+      password,
+      exsitingUser.password
+    );
+    // if password is not matched
+    if (!isPasswordMatched) {
+      return res.status(400).json({
+        message: "Invalid Email/Password.",
+      });
+    }
+
+    return successResponse(res, 200, "user was logged In");
+  } catch (error) {
+    return errorResponse(res, 500, error.message);
+  }
+};
+```
+
+#### step19: How to generate JWT Token
+
+- [jwt doc](https://github.com/auth0/node-jsonwebtoken)
+- `npm install jsonwebtoken`
+
+```js
+const jwt = require("jsonwebtoken");
+// create a secret key
+// jwt.sign(payload, secretOrPrivateKey, [options, callback])
+
+// generate JWT Token
+const token = jwt.sign({ id: exsitingUser._id }, String(dev.app.jwtSecretKey), {
+  // algorithm: 'HS512',
+  expiresIn: "40s",
+});
+```
+
+#### step19: How to store the tooken in cookie
+
+- `npm install cookie-parser`
+
+```js
+const cookieParser = require("cookie-parser");
+app.use(cookieParser());
+
+// set the token inisde httpOnly Cookie
+res.cookie(String(exsitingUser._id), token, {
+  path: "/",
+  expires: new Date(Date.now() + 1000 * 30),
+  httpOnly: true,
+  sameSite: "lax",
+});
+```
+
+#### step20: How to verify the tooken from cookie
+
+```js
+// authorization middleware
+// cookie exist or not
+if (!req.headers.cookie) {
+  return res.status(400).json({
+    message: "No cookie found",
+  });
+}
+
+// how to get the cookie from request header
+const token = req.headers.cookie.split("=")[1];
+
+// verify the cookie
+if (!token) {
+  return res.status(400).json({
+    message: "No token found",
+  });
+}
+
+jwt.verify(String(token), String(dev.app.jwtSecretKey), (err, user) => {
+  if (err) {
+    return res.status(403).json({
+      message: "Invalid token",
+    });
+  }
+  req.id = user.id;
+  next();
+});
+```
+
+#### step21: return the user after verification
+
+- `userRoutes.get('/profile', authorization, getUserProfile)`
+
+```js
+const getUserProfile = async (req, res) => {
+  try {
+    const user = await User.findById({ _id: req.id }, "-password");
+    if (!user) {
+      return res.status(400).json({
+        message: "user does not exists with this id.",
+      });
+    }
+    return successResponse(res, 200, "user profile was returned", user);
+  } catch (error) {
+    return errorResponse(res, 500, error.message);
+  }
+};
+```
+
+#### step22: logout user by resetting the cookie
+
+-`router.post("/logout", authorization, logoutUser);`
+
+```js
+const logoutUser = async (req, res) => {
+  try {
+    if (!req.headers.cookie) {
+      return res.status(400).json({
+        message: "No cookie found",
+      });
+    }
+    const token = req.headers.cookie.split("=")[1];
+
+    if (!token) {
+      return res.status(400).json({
+        message: "No token found",
+      });
+    }
+
+    jwt.verify(String(token), String(dev.app.jwtSecretKey), (err, user) => {
+      if (err) {
+        return res.status(403).json({
+          message: "Invalid token",
+        });
+      }
+      // req.cookies[`${user.id}`] = ''
+      res.clearCookie(`${user.id}`);
+    });
+
+    res.send("you are successfully logout");
+  } catch (error) {
+    res.status(500).send({
+      message: error.message,
+    });
+  }
+};
+```
+
+#### step23: refresh token
+
+- `router.get("/refresh", refreshToken, verifyToken, getUser);`
+
+```js
+
+```
+
+#### step24:
