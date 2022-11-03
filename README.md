@@ -3065,6 +3065,11 @@ const token = jwt.sign({ id: exsitingUser._id }, String(dev.app.jwtSecretKey), {
 const cookieParser = require("cookie-parser");
 app.use(cookieParser());
 
+// if any cookie exisit then delete
+if (req.cookies[`${exsitingUser._id}`]) {
+  req.cookies[`${exsitingUser._id}`] = "";
+}
+
 // set the token inisde httpOnly Cookie
 res.cookie(String(exsitingUser._id), token, {
   path: "/",
@@ -3077,7 +3082,7 @@ res.cookie(String(exsitingUser._id), token, {
 #### step20: How to verify the tooken from cookie
 
 ```js
-// authorization middleware
+// isAuthorized middleware
 // cookie exist or not
 if (!req.headers.cookie) {
   return res.status(400).json({
@@ -3108,7 +3113,7 @@ jwt.verify(String(token), String(dev.app.jwtSecretKey), (err, user) => {
 
 #### step21: return the user after verification
 
-- `userRoutes.get('/profile', authorization, getUserProfile)`
+- `userRoutes.get('/profile', isAuthorized, getUserProfile)`
 
 ```js
 const getUserProfile = async (req, res) => {
@@ -3128,7 +3133,7 @@ const getUserProfile = async (req, res) => {
 
 #### step22: logout user by resetting the cookie
 
--`router.post("/logout", authorization, logoutUser);`
+-`router.post("/logout", isAuthorized, logoutUser);`
 
 ```js
 const logoutUser = async (req, res) => {
@@ -3152,7 +3157,7 @@ const logoutUser = async (req, res) => {
           message: "Invalid token",
         });
       }
-      // req.cookies[`${user.id}`] = ''
+      req.cookies[`${user.id}`] = "";
       res.clearCookie(`${user.id}`);
     });
 
@@ -3167,10 +3172,737 @@ const logoutUser = async (req, res) => {
 
 #### step23: refresh token
 
-- `router.get("/refresh", refreshToken, verifyToken, getUser);`
+- `userRoutes.get('/refresh', getRefreshToken, isAuthorized, getUserProfile)`
 
 ```js
+const getRefreshToken = async (req, res, next) => {
+  try {
+    if (!req.headers.cookie) {
+      return res.status(400).json({
+        message: "No cookie found",
+      });
+    }
+    const existingToken = req.headers.cookie.split("=")[1];
 
+    if (!existingToken) {
+      return res.status(400).json({
+        message: "No token found",
+      });
+    }
+
+    jwt.verify(existingToken, String(dev.app.jwtSecretKey), (err, user) => {
+      if (err) {
+        console.log(err);
+        return res.status(403).json({
+          message: "Auth failed",
+        });
+      }
+
+      req.cookies[`${user.id}`] = "";
+      res.clearCookie(`${user.id}`);
+
+      const newToken = jwt.sign({ id: user.id }, String(dev.app.jwtSecretKey), {
+        // algorithm: "HS512",
+        expiresIn: "30s",
+      });
+
+      console.log("ReGenerated token\n", newToken);
+
+      // sending token inside httpOnly cookie
+      res.cookie(String(user.id), newToken, {
+        path: "/",
+        expires: new Date(Date.now() + 1000 * 28),
+        httpOnly: true,
+        sameSite: "lax",
+      });
+
+      req.id = user.id;
+      next();
+    });
+  } catch (error) {
+    res.status(500).send({
+      message: error.message,
+    });
+  }
+};
 ```
 
-#### step24:
+#### step24: Front end Part
+
+- create react app - `npx create-react-app .`
+- create a folder structure: pages, components, routes, layouts, app (store.js),
+- create some pages inside pages folder -> Blogs, Profile, Register, Login, Error, index.js
+
+```js
+// import all the pages from one place
+export { Error } from "./Error";
+export { Blogs } from "./Blogs";
+export { Register } from "./Register";
+export { Login } from "./Login";
+export { Profile } from "./Profile";
+export { Contact } from "./Contact";
+```
+
+- setup react routing -> routes/index.js
+
+```js
+`npm install react-router-dom`
+// routes/index.js
+
+import React from "react";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { Blogs, Contact, Error, Login, Profile, Register } from "../pages";
+
+const Index = () => {
+  return (
+    <BrowserRouter>
+      <main>
+        <Routes>
+          <Route path="/" element={<Blogs />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/Profile" element={<Profile />} />
+          <Route path="*" element={<Error />} />
+        </Routes>
+      </main>
+    </BrowserRouter>
+  );
+};
+
+export default Index;
+
+// App.js
+import React from "react";
+
+import "./App.css";
+import Index from "./routes";
+
+function App() {
+  return <Index />;
+}
+
+export default App;
+```
+
+- Add layouts inside layouts folder
+
+```js
+// Navbar.js
+import React from "react";
+import { Link } from "react-router-dom";
+
+const Navbar = () => {
+  return (
+    <nav className="center">
+      <Link to="/" className="nav__link">
+        Blogs
+      </Link>
+      <Link to="/register" className="nav__link">
+        Register
+      </Link>
+      <Link to="/login" className="nav__link">
+        Login
+      </Link>
+      <Link to="/logout" className="nav__link">
+        Logout
+      </Link>
+       <Link to="/profile" className="nav__link">
+        Profile
+      </Link>
+      <Link to="/contact" className="nav__link">
+        Contact
+      </Link>
+    </nav>
+  );
+};
+
+export default Navbar;
+
+// Footer.js
+import React from "react";
+
+const Footer = () => {
+  return (
+    <footer className="center">
+      <p>copyright by anisul islam</p>
+    </footer>
+  );
+};
+
+export default Footer;
+```
+
+- add css
+- Register the user
+
+```js
+// Register.js
+import React, { useState } from "react";
+
+export const Register = () => {
+  const [user, setUser] = useState({
+    name: "",
+    email: "",
+    password: "",
+    phone: "",
+  });
+
+  const handleInputChange = (event) => {
+    setUser((prevState) => {
+      return { ...prevState, [event.target.name]: event.target.value };
+    });
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    console.log(user);
+    setUser({
+      name: "",
+      email: "",
+      password: "",
+      phone: "",
+    });
+  };
+
+  return (
+    <div className="container">
+      <h1>User Registration</h1>
+      <div className="card">
+        <form className="registration-form" onSubmit={handleSubmit}>
+          <div className="form-control">
+            <label htmlFor="name">Name: </label>
+            <input
+              type="text"
+              name="name"
+              id="name"
+              value={user.name}
+              onChange={handleInputChange}
+            />
+          </div>
+          <div className="form-control">
+            <label htmlFor="email">Email: </label>
+            <input
+              type="email"
+              name="email"
+              id="email"
+              value={user.email}
+              onChange={handleInputChange}
+            />
+          </div>
+          <div className="form-control">
+            <label htmlFor="password">Password: </label>
+            <input
+              type="password"
+              name="password"
+              id="password"
+              value={user.password}
+              onChange={handleInputChange}
+            />
+          </div>
+          <div className="form-control">
+            <label htmlFor="phone">Phone: </label>
+            <input
+              type="tel"
+              name="phone"
+              id="phone"
+              value={user.phone}
+              onChange={handleInputChange}
+            />
+          </div>
+          <div className="form-control">
+            <button type="submit" className="btn">
+              Register
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+```
+
+- create Service for registering the user
+
+```js
+// INSTALL axios
+import axios from "axios";
+axios.defaults.withCredentials = true;
+
+const baseURL = "http://localhost:3030/api";
+export const registerUser = async (user) => {
+  const response = await axios.post(`${baseURL}/users/register`, user);
+  return response.data;
+};
+```
+
+- call the service and register the user
+
+```js
+const handleSubmit = async (event) => {
+  event.preventDefault();
+  try {
+    const response = await registerUser(user);
+    console.log(user);
+    console.log(response);
+  } catch (error) {
+    console.log(error);
+  }
+  setUser({
+    name: "",
+    email: "",
+    password: "",
+    phone: "",
+  });
+};
+```
+
+- Modal states, Modal create, Modal Load
+
+```js
+// Register.js
+const [modalText, setModalText] = useState("");
+const [isModalOpen, setIsModalOpen] = useState(false);
+const [responseStatus, setResponseStatus] = useState(false);
+
+const handleSubmit = async (event) => {
+  event.preventDefault();
+  try {
+    const response = await registerUser(user);
+    console.log(response);
+    setModalText(response.message);
+    setResponseStatus(true);
+  } catch (error) {
+    setModalText(error.response.data.message);
+    setResponseStatus(false);
+  } finally {
+    setIsModalOpen(true);
+  }
+  setUser({
+    name: "",
+    email: "",
+    password: "",
+    phone: "",
+  });
+};
+
+const closeModal = () => {
+  setIsModalOpen(false);
+};
+
+// load the modal
+{
+  isModalOpen && (
+    <Modal
+      modalText={modalText}
+      closeModal={closeModal}
+      responseStatus={responseStatus}
+    />
+  );
+}
+```
+
+- create the Modal component
+
+  ```js
+  import React, { useEffect } from "react";
+
+  const Modal = ({ modalText, closeModal, responseStatus }) => {
+    useEffect(() => {
+      setTimeout(() => {
+        closeModal();
+      }, 2000);
+    }, [closeModal]);
+
+    return (
+      <p style={{ color: responseStatus ? "green" : "red" }}>{modalText}</p>
+    );
+  };
+
+  export default Modal;
+  ```
+
+- Navigate to one route from another
+
+  ```js
+  // after registration successfully got to login route
+  import { useNavigate } from "react-router-dom";
+  const navigate = useNavigate();
+  navigate("/login");
+  ```
+
+- ADD user login functionality
+
+  ```js
+  import React, { useState } from "react";
+  import { loginUser } from "../services/UserService";
+
+  import Modal from "../Components/Modal";
+  import { useNavigate } from "react-router-dom";
+
+  export const Login = () => {
+    const navigate = useNavigate();
+    const [user, setUser] = useState({
+      email: "",
+      password: "",
+    });
+
+    const [modalText, setModalText] = useState("");
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [responseStatus, setResponseStatus] = useState(false);
+
+    const handleInputChange = (event) => {
+      setUser((prevState) => {
+        return { ...prevState, [event.target.name]: event.target.value };
+      });
+    };
+
+    const handleSubmit = async (event) => {
+      event.preventDefault();
+      try {
+        await loginUser(user);
+        navigate("/blogs");
+      } catch (error) {
+        setModalText(error.response.data.message);
+        setResponseStatus(false);
+        setIsModalOpen(true);
+      }
+    };
+
+    const closeModal = () => {
+      setIsModalOpen(false);
+    };
+
+    return (
+      <div className="container">
+        <h1>User Login</h1>
+        <div className="card">
+          <form className="registration-form" onSubmit={handleSubmit}>
+            <div className="form-control">
+              <label htmlFor="email">Email: </label>
+              <input
+                type="email"
+                name="email"
+                id="email"
+                value={user.email}
+                onChange={handleInputChange}
+              />
+            </div>
+            <div className="form-control">
+              <label htmlFor="password">Password: </label>
+              <input
+                type="password"
+                name="password"
+                id="password"
+                placeholder="password must be 6 characters"
+                value={user.password}
+                onChange={handleInputChange}
+              />
+            </div>
+
+            <div className="form-control">
+              <button type="submit" className="btn">
+                Login
+              </button>
+            </div>
+          </form>
+        </div>
+        {isModalOpen && (
+          <Modal
+            modalText={modalText}
+            closeModal={closeModal}
+            responseStatus={responseStatus}
+          />
+        )}
+      </div>
+    );
+  };
+
+  // services/UserService.js
+  export const loginUser = async (user) => {
+    const response = await axios.post(`${baseURL}/users/login`, user);
+    return response.data;
+  };
+  ```
+
+- get user profile from backend and load in Profile component
+
+  - first create the service for api calling
+
+  ```js
+  export const userProfile = async () => {
+    const response = await axios.get(`${baseURL}/users/profile`, {
+      withCredentials: true,
+    });
+    return response.data;
+  };
+  ```
+
+  ```js
+  // Profile.js
+  import React, { useEffect, useState } from "react";
+  import { userProfile } from "../services/UserService";
+
+  export const Profile = () => {
+    const [user, setUser] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState();
+
+    const makeRequest = async () => {
+      setIsLoading(true);
+      try {
+        const response = await userProfile();
+        // console.log(response.data);
+        setUser(response.data);
+        setIsLoading(false);
+      } catch (error) {
+        setError(error.response.data.message);
+        setUser(null);
+        setIsLoading(false);
+      }
+    };
+
+    useEffect(() => {
+      makeRequest();
+    }, []);
+
+    console.log(user);
+
+    return (
+      <div className="container">
+        <h2>User Profile</h2>
+        <div className="card center">
+          {isLoading && <p>Profile is loading</p>}
+          {error && <p style={{ color: "orange" }}>{error}</p>}
+          {user && (
+            <div className="profile">
+              <h3 className="profile__name">Name: {user.name}</h3>
+              <p className="profile__email">Email: {user.email}</p>
+              <p className="profile__phone">Phone: {user.phone}</p>
+              <div className="profile__buttons">
+                <button className="btn">Update</button>
+                <button className="btn">Delete</button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+  ```
+
+- logout the user
+
+```js
+// Navbar.js
+<Link to="/logout" className="nav__link" onClick={handleLogout}>
+  Logout
+</Link>;
+
+const handleLogout = async () => {
+  try {
+    const response = await logoutUser();
+    if (response.status === 200) {
+      navigate("/login");
+    }
+  } catch (error) {
+    return new Error(error);
+  }
+};
+```
+
+- protect the routes using redux-tookit
+
+  - install packages `npm install @reduxjs/toolkit react-redux`
+  - create a userSlice inside feature folder
+
+    ```js
+    // features/userSlice.js
+    import { createSlice } from "@reduxjs/toolkit";
+
+    export const userSilice = createSlice({
+      name: "user",
+      initialState: { isLoggedIn: false },
+      reducers: {
+        login: (state) => {
+          state.isLoggedIn = true;
+        },
+        logout: (state) => {
+          state.isLoggedIn = false;
+        },
+      },
+    });
+
+    // export reducer and action createor
+    // Action creators are generated for each case reducer function
+    export const { login, logout } = userSilice.actions;
+
+    export default userSilice.reducer;
+    ```
+
+  - create a store.js inside app folder
+
+    ```js
+    import { configureStore } from "@reduxjs/toolkit";
+
+    import userReducer from "../features/userSlice";
+
+    const store = configureStore({
+      reducer: {
+        user: userReducer,
+      },
+    });
+    export default store;
+    ```
+
+  - lets use the store
+
+    ```js
+    import { Provider } from "react-redux";
+    import store from "./app/store";
+    <Provider store={store}>
+      <App />
+    </Provider>;
+    ```
+
+  - use store: lets control logout, login, profile, register link in navbar
+
+    ```js
+    // Navbar.js
+    import React from "react";
+    import { Link } from "react-router-dom";
+    import { useNavigate } from "react-router-dom";
+    import { useSelector } from "react-redux";
+
+    import { logoutUser } from "../services/UserService";
+
+    const Navbar = () => {
+      const isLoggedIn = useSelector((state) => state.user.isLoggedIn);
+      console.log(isLoggedIn);
+      const navigate = useNavigate();
+      const handleLogout = async () => {
+        try {
+          const response = await logoutUser();
+          if (response.status === 200) {
+            navigate("/login");
+          }
+        } catch (error) {
+          return new Error(error);
+        }
+      };
+      return (
+        <nav className="center">
+          {isLoggedIn && (
+            <Link to="/" className="nav__link">
+              Blogs
+            </Link>
+          )}
+          {!isLoggedIn && (
+            <>
+              <Link to="/register" className="nav__link">
+                Register
+              </Link>
+              <Link to="/login" className="nav__link">
+                Login
+              </Link>
+            </>
+          )}
+          {isLoggedIn && (
+            <Link to="/logout" className="nav__link" onClick={handleLogout}>
+              Logout
+            </Link>
+          )}
+          <Link to="/contact" className="nav__link">
+            Contact
+          </Link>
+          {isLoggedIn && (
+            <Link to="/profile" className="nav__link">
+              Profile
+            </Link>
+          )}
+        </nav>
+      );
+    };
+
+    export default Navbar;
+    ```
+
+  - use store: let control routes -> index.js
+
+    ```js
+    import React from "react";
+    import { BrowserRouter, Route, Routes } from "react-router-dom";
+    import { useSelector } from "react-redux";
+
+    import Navbar from "../layout/Navbar";
+    import Footer from "../layout/Footer";
+    import { Blogs, Contact, Error, Login, Profile, Register } from "../pages";
+
+    const Index = () => {
+      const isLoggedIn = useSelector((state) => state.user.isLoggedIn);
+      console.log(isLoggedIn);
+      return (
+        <BrowserRouter>
+          <Navbar />
+          <main>
+            <Routes>
+              {!isLoggedIn && (
+                <>
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/login" element={<Login />} />
+                </>
+              )}
+              <Route path="/contact" element={<Contact />} />
+              {isLoggedIn && (
+                <>
+                  <Route path="/" element={<Blogs />} />
+                  <Route path="/Profile" element={<Profile />} />
+                </>
+              )}
+              <Route path="*" element={<Error />} />
+            </Routes>
+          </main>
+          <Footer />
+        </BrowserRouter>
+      );
+    };
+
+    export default Index;
+    ```
+
+  - lets dispatch actions when login and logout
+
+    ```js
+    // Login.js
+    import { useDispatch } from "react-redux";
+    const dispatch = useDispatch();
+
+    const handleSubmit = async (event) => {
+      event.preventDefault();
+      try {
+        await loginUser(user);
+        dispatch(login());
+        navigate("/blogs");
+      } catch (error) {
+        setModalText(error.response.data.message);
+        setResponseStatus(false);
+        setIsModalOpen(true);
+      }
+    };
+
+    // Navbar.js
+    import { useSelector, useDispatch } from "react-redux";
+    import { logout } from "../features/userSlice";
+    const dispatch = useDispatch();
+    const handleLogout = async () => {
+      try {
+        const response = await logoutUser();
+        if (response.status === 200) {
+          dispatch(logout());
+          navigate("/login");
+        }
+      } catch (error) {
+        return new Error(error);
+      }
+    };
+    ```
