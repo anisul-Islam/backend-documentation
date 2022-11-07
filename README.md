@@ -2874,6 +2874,68 @@ exports.loginUserValidator = [
 ];
 ```
 
+- create an validation/auth.js
+
+```js
+const { check } = require("express-validator");
+
+exports.userSignupValidator = [
+  check("name").not().isEmpty().withMessage("Name is required"),
+  check("email")
+    .not()
+    .isEmpty()
+    .withMessage("Email is required")
+    .normalizeEmail()
+    .isEmail()
+    .withMessage("not a valid email"),
+  check("password")
+    .isLength({ min: 6 })
+    .withMessage("Password must be at least 6 characters"),
+];
+```
+
+- create an validation/index.js
+
+```js
+const { validationResult } = require("express-validator");
+
+exports.runValidation = (req, res, next) => {
+  // const errors = validationResult(req);
+  // console.log(errors);
+  // if (!errors.isEmpty()) {
+  //   const validationErrors = {};
+  //   const allErrors = errors.array();
+  //   allErrors.forEach((error) => {
+  //     validationErrors[error.param] = error.msg;
+  //   });
+
+  //   return res.status(400).json({
+  //     validationErrors,
+  //   });
+  // }
+  // return next();
+
+  // method 2
+  // const errors = validationResult(req);
+  // if (!errors.isEmpty()) {
+  //   return res.status(422).json({
+  //     error: errors.array()[0].msg,
+  //   });
+  // }
+  // return next();
+
+  // method3
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    let errorsList = errors.array().map((error) => error.msg);
+    return res.status(422).json({
+      error: errorsList,
+    });
+  }
+  return next();
+};
+```
+
 #### step14: hash the password with bcrypt
 
 - `npm install bcrypt`
@@ -3001,27 +3063,31 @@ const registerUser = async (req, res) => {
 ```js
 const loginUser = async (req, res) => {
   try {
+    // step 1: get the data from request body
     const { email, password } = req.body;
 
-    // check input are missing or not
+    // step 2 and 3 are optional if you are already using 3rd party validator
+    // step 2: check input are missing or not
     if (!email || !password)
-      return errorResponse(res, 400, "email, password is required");
+      return res.status(400).json({
+        message: "email, password is required",
+      });
 
-    // check password length >= 6
+    // step 3: check password length >= 6
     if (password.length < 6)
-      return errorResponse(res, 400, "Minimum Password length is 6 characters");
+      return res.status(400).json({
+        message: "Minimum Password length is 6 characters",
+      });
 
-    // check user already exist or not with email
+    // step 4: check user exist or not with email
     const exsitingUser = await User.findOne({ email });
     if (!exsitingUser) {
-      return errorResponse(
-        res,
-        400,
-        "No User exist with this eamil. Please register/signup first"
-      );
+      return res.status(400).json({
+        message: "No User exist with this eamil. Please register/signup first",
+      });
     }
 
-    // compare password
+    // step 5: compare password
     const isPasswordMatched = await bcrypt.compare(
       password,
       exsitingUser.password
@@ -3033,9 +3099,33 @@ const loginUser = async (req, res) => {
       });
     }
 
-    return successResponse(res, 200, "user was logged In");
+    // step 6: generate a token with expiray time and sent it to front end
+    const token = jwt.sign(
+      { _id: exsitingUser._id },
+      String(dev.app.jwtSecretKey),
+      {
+        expiresIn: "7d",
+      }
+    );
+
+    // step 7: create user info
+    const userInfo = {
+      _id: exsitingUser._id,
+      name: exsitingUser.name,
+      email: exsitingUser.email,
+      phone: exsitingUser.phone,
+      isAdmin: exsitingUser.isAdmin,
+    };
+
+    return res.status(200).json({
+      message: "user was signed in",
+      user: userInfo,
+      token,
+    });
   } catch (error) {
-    return errorResponse(res, 500, error.message);
+    return res.json({
+      message: error.message,
+    });
   }
 };
 ```
@@ -3457,6 +3547,21 @@ const handleSubmit = async (event) => {
 };
 ```
 
+- How to use react-toastify
+
+```js
+// install the package
+
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.min.css";
+
+toast.success(response.message);
+toast.error(error.response.data.message);
+
+// add container in the return function
+<ToastContainer />;
+```
+
 - Modal states, Modal create, Modal Load
 
 ```js
@@ -3720,24 +3825,38 @@ const handleLogout = async () => {
     // features/userSlice.js
     import { createSlice } from "@reduxjs/toolkit";
 
-    export const userSilice = createSlice({
+    const getLocalStoreItem = () => {
+      if (localStorage.getItem("loginStatus") === null) {
+        return false;
+      } else {
+        return JSON.parse(localStorage.getItem("loginStatus"));
+      }
+    };
+
+    export const userSlice = createSlice({
       name: "user",
-      initialState: { isLoggedIn: false },
+      initialState: { isLoggedIn: getLocalStoreItem(), firstRender: true },
+
       reducers: {
         login: (state) => {
-          state.isLoggedIn = true;
+          localStorage.setItem("loginStatus", "true");
+          state.isLoggedIn = getLocalStoreItem();
         },
         logout: (state) => {
-          state.isLoggedIn = false;
+          localStorage.setItem("loginStatus", "false");
+          state.isLoggedIn = getLocalStoreItem();
+        },
+        updateRender: (state) => {
+          state.firstRender = false;
         },
       },
     });
 
     // export reducer and action createor
     // Action creators are generated for each case reducer function
-    export const { login, logout } = userSilice.actions;
+    export const { login, logout, updateRender } = userSlice.actions;
 
-    export default userSilice.reducer;
+    export default userSlice.reducer;
     ```
 
   - create a store.js inside app folder
@@ -3778,7 +3897,6 @@ const handleLogout = async () => {
 
     const Navbar = () => {
       const isLoggedIn = useSelector((state) => state.user.isLoggedIn);
-      console.log(isLoggedIn);
       const navigate = useNavigate();
       const handleLogout = async () => {
         try {
@@ -3906,3 +4024,35 @@ const handleLogout = async () => {
       }
     };
     ```
+
+- lets add refresh token functionality
+
+```js
+// Profile.js
+
+// for the first render lets get the original token
+let firstRender = true;
+
+const refreshToken = async () => {
+  try {
+    const res = await axios.get("http://localhost:3001/api/refresh", {
+      withCredentials: true,
+    });
+    return res.data;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+useEffect(() => {
+  if (firstRender) {
+    sendRequest().then((data) => setUser(data.user));
+    firstRender = false;
+  }
+  let interval = setInterval(() => {
+    refreshToken().then((data) => setUser(data.user));
+  }, 1000 * 29);
+
+  return () => clearInterval(interval);
+}, []);
+```
