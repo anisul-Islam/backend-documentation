@@ -1167,28 +1167,13 @@ export const addProduct = (request: Request, response: Response) => {
 ## [2.20 Server side validation with express-validator]
 
 - `npm i express-validator @types/express-validator`
+- [Source code](https://github.com/anisul-Islam/express-validator-tutorial)
 
-```js
-//middleware/formValidation.ts
-import { body, validationResult } from "express-validator";
-import { NextFunction, Request, Response } from "express";
-export const formValidation = [
-  body("title").isLength({ min: 5 }),
-  body("username").isEmail(),
-  body("price").not().isEmpty().withMessage("Price is required"),
-  (request: Request, response: Response, next: NextFunction) => {
-    const errors = validationResult(request);
-    if (!errors.isEmpty()) {
-      return response.status(422).json({ errors: errors.array() });
-    } else next();
-  },
-];
+## [2.21 Server side validation with joi]
 
-//routes/products.ts
-router.post("/", authUser, formValidation, addProduct);
-```
+- [Source code](https://github.com/anisul-Islam/joi-validator-tutorial)
 
-## [2.21 How to upload file (image, video etc.)]
+## [2.22 How to upload file (image, video etc.)]
 
 - `npm install express multer`
 - `npm install -D express multer`
@@ -1253,12 +1238,12 @@ app.listen(port, () => {
 });
 ```
 
-## [2.22 Express generator]
+## [2.23 Express generator]
 
 - package `npx espress-generator`
 - create a basic standard scalable folder structure with necessary codes
 
-## [2.23 cookie]
+## [2.24 cookie]
 
 - to make http request stateful (have some info stored about api call like user is signed in or not) , by default http api call are stateless
 - keep track of user activity
@@ -1308,7 +1293,7 @@ router.get("/:id", isLoggedIn, (req, res) => {
 });
 ```
 
-## [2.24 session]
+## [2.25 session]
 
 ## MongoDB Tutorial
 
@@ -2519,6 +2504,8 @@ app.listen(port, () => {
 ```
 
 #### step3: Prettier formatter and ESLint Linter setup (check my github for setup)
+
+- [prettier and eslint setup](https://github.com/anisul-Islam/prettier-eslint-setup)
 
 #### step4: config .env variables
 
