@@ -444,11 +444,21 @@ const fs = require("fs");
 const PORT = 3001;
 
 const server = http.createServer((req, res) => {
-  if (req.url === "/" && req.method === "GET") {
-    res.writeHead(200, { "Content-Type": "application/json" });
+  const headers = {
+    "Access-Control-Allow-Origin": "*" /* @dev First, read about security */,
+    "Access-Control-Allow-Methods": "OPTIONS, POST, GET",
+    "Access-Control-Max-Age": 2592000, // 30 days
+    /** add other headers as per requirement */
+  };
+
+  if (req.url === "/users" && req.method === "GET") {
+    res.writeHead(200, headers, { "Content-Type": "application/json" });
     res.end(
       JSON.stringify({
-        users: [{ id: 1, name: "anisul" }],
+        users: [
+          { id: 1, name: "anisul islam", email: "anisul@gmail.com" },
+          { id: 2, name: "sufia begum", email: "sufia@gmail.com" },
+        ],
       })
     );
   }
@@ -457,6 +467,7 @@ const server = http.createServer((req, res) => {
 server.listen(PORT, () => {
   console.log(`server is running at http://localhost:${PORT}`);
 });
+
 
 ```
 - How to deploy on heroku
