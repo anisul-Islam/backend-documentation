@@ -436,13 +436,36 @@ fs.unlink("test2.txt", (err) => {
     console.log(`Server is running at http://localhost:${PORT}`);
   });
   ```
+- How to response json 
+```js
+const http = require("http");
+const fs = require("fs");
 
+const PORT = 3001;
+
+const server = http.createServer((req, res) => {
+  if (req.url === "/" && req.method === "GET") {
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(
+      JSON.stringify({
+        users: [{ id: 1, name: "anisul" }],
+      })
+    );
+  }
+});
+
+server.listen(PORT, () => {
+  console.log(`server is running at http://localhost:${PORT}`);
+});
+
+```
 - How to deploy on heroku
 
   - step1 : const PORT = process.env.PORT || 3000;
   - step2 : add Procfile -> `web: node index.js`
   - step3 : npm init -y && npm install nodemon
   - step4 : follow the steps in heroku
+  
 
 ### [1.13 Complete REST API]
 
