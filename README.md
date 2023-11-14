@@ -2,6 +2,8 @@
 
 - prerqusities: javascript, typescript
 
+![profile2](./fs.excalidraw.png)
+
 ## Table of Contents
 
 1. [1. Node.js](#1-nodejs)
@@ -14,31 +16,46 @@
 
 ### [1.1 Introduction to Node.js & setup](https://youtu.be/36R0VXmX8i8)
 
-#### What is Node.js & Why Node.js?
+#### What is Node.js?
 
-![profile2](./fs.excalidraw.png)
-
-- fullstack = front-end + back-end
-
-- Node.js is server side environment; not a programming language.
-- helps us to create real time applications
-- It helps to manage files (create, open, read, write, delete and close) on the server.
-- it supports asynchronous programming.
-- it helps to collect form data.
-- It helps to manage (add, modify, delete data) database.
-
-- It utilize Google's V8 engine (developed with C++) which compiles javascript code into machine code
-- a js runtime which allows us to run js in the server
-- node.js does not run on browser but only vanila js
+- Node.js is not a programming language. It is a js runtime environment which allows us to run js in the server. Node.js does not run on browser but only vanila js.
 - window is a global object for browser. before node.js we could use javascript for the browser only but now with the help of node.js we can run javascript for accessing our local machine. try console.log(), window.alert() at the browser and in the terminal.
+- It utilize Google's V8 engine (developed with C++) which compiles javascript code into machine code
+- Node.js is single threaded but non-blocking beacuse of event loop.
 
-### 1.2 Environment setup
+#### Why Node.js?
+
+- It helps us to create server.
+- It helps to manage files (create, open, read, write, delete and close) on the server.
+- It helps to manage (add, modify, delete data) database.
+- it supports asynchronous programming.
+
+### 1.2 Environment setup & run
 
 - check node is already installed or not using the command: node --version or node -v
 - [Node.js](https://nodejs.org/en/) download & install
 - Editor: anything; I prefer [Visual Studio Code](https://code.visualstudio.com/)
 - type node and enter for using Node REPL and try writing some javascript code here like console.log(), mathematical calculations
 - window is a global object in the fornt end; global is the global object in the backend
+- initialize npm so that you can use es6 module
+- run a simple app and run `node index.js`
+  
+  ```js
+    // index.js
+    console.log('Welcome to Node.js');
+
+    const products = [
+      { id: '1', title: 'apple iphone 12', price: 320 },
+      { id: '2', title: 'apple iphone 14', price: 420 },
+      { id: '3', title: 'apple iphone 15', price: 820 },
+    ];
+
+    const printAllProducts = (products) => {
+      console.log(products);
+    };
+
+    printAllProducts(products);
+  ```
 
 ### [1.3 Node js event loop]
 
@@ -80,92 +97,150 @@
   console.log("no need to wait for this task");
   ```
 
-### [1.4 Local module](https://youtu.be/n3F1kaOfyzw)
+### [1.4 Module](https://youtu.be/n3F1kaOfyzw)
 
 #### What is module? Types of module?
 
+- Module is a set of functions or variables.
 - we can use es6 import, export by adding "type":"module" in package.json
 - when you have too much code in a single file you would like to separate them in multiple files so that they are reusable and modular.
-- Module is a set of functions or variables.
 - console.log(process) and find the module.exports = {}
 - 3 types of module.
   - local module (own created module)
   - built-in-modules (node.js own module)
   - External modules (3rd party module mainly managed by npm)
-- example 1
+
+#### [Local module]
+
+- version 0: without module
 
   ```js
-  // message.js
-  const SUBJECT = "Node.js";
+  // index.js
+  const products = [
+    { id: '1', title: 'apple iphone 12', price: 320 },
+    { id: '2', title: 'apple iphone 14', price: 420 },
+    { id: '3', title: 'apple iphone 15', price: 820 },
 
-  const displayInfo = (name) => {
-    console.log(`Welcome ${name}`);
+  ];
+
+  const getAllProducts = () => {
+    return products;
   };
 
-  module.exports = { SUBJECT, displayInfo };
+  const getSingleProduct = (id) => {
+    const product = products.find((product) => product.id === id);
+    return product;
+  };
 
-  // index.js
-  const message = require("./message");
-  console.log(message.SUBJECT);
-  message.displayInfo("Anisul Islam");
+  const deleteSingleProduct = (id) => {
+    const filteredProducts = products.filter((product) => product.id !== id);
+    return filteredProducts;
+  };
+
+  console.log(getAllProducts());
+  console.log(getSingleProduct('2'));
+  console.log(deleteSingleProduct('2'));
   ```
 
-- example 2
+- version 1: individual export
 
   ```js
-  // message.js
+  // productController.js
+  const products = [
+    { id: '1', title: 'apple iphone 12', price: 320 },
+    { id: '2', title: 'apple iphone 14', price: 420 },
+    { id: '3', title: 'apple iphone 15', price: 820 },
 
-  const SUBJECT = "Node.js";
-  // exports.SUBJECT = "Node.js";
+  ];
 
-  const displayInfo = (name) => {
-    console.log(`Welcome ${name}`);
+  exports.getAllProducts = () => {
+    return products;
   };
 
-  exports.SUBJECT = SUBJECT;
-  exports.displayInfo = displayInfo;
-
-  // index.js
-
-  // following line will get everything from message module
-  const message = require("./message");
-
-  // following line will get separate items from message module
-  const { SUBJECT, displayInfo } = require("./message");
-  console.log(SUBJECT);
-  displayInfo("anisul");
-
-  // another example
-  exports.add = (num1, num2) => {
-    return num1 + num2;
+  exports.getSingleProduct = (id) => {
+    const product = products.find((product) => product.id === id);
+    return product;
   };
-  exports.sub = (num1, num2) => {
-    return num1 - num2;
+
+  exports.deleteSingleProduct = (id) => {
+    const filteredProducts = products.filter((product) => product.id !== id);
+    return filteredProducts;
   };
-  exports.mul = (num1, num2) => {
-    return num1 * num2;
-  };
+
+  // now use them in anywhere
+  const {
+    getAllProducts,
+    getSingleProduct,
+    deleteSingleProduct,
+
+  } = require('./productsController');
+
+  console.log('All Products:', getAllProducts());
+  console.log('Single Product:', getSingleProduct('2'));
+  console.log('Products after delete:',deleteSingleProduct('2'));
+
+- version 2: exporting them all at a time
+  
+  ```js
+  // changes in export but no changes in require
+   module.exports = { getAllProducts, getSingleProduct, deleteSingleProduct };
   ```
 
-- example 3
+- version 2: name export
 
   ```js
-  // converter.js
-  const convertIntoNumber = (text) => {
-    return parseInt(text);
-  };
+    // 1 name export is possible for one file
+    module.exports = getAllProducts;
 
-  module.exports = { convertIntoNumber };
-
-  // index.js
-  const { convertIntoNumber } = require("./converter");
-
-  const price = "27.5";
-
-  console.log(typeof convertIntoNumber(price));
+    // now require it with any name
   ```
 
-### [1.5 Built-in module - os and path module](https://youtu.be/EHo7KNPawhw)
+- version 3: export a class
+
+  ```js
+    const products = [
+      { id: '1', title: 'apple iphone 12', price: 320 },
+      { id: '2', title: 'apple iphone 14', price: 420 },
+      { id: '3', title: 'apple iphone 15', price: 820 },
+
+    ];
+
+    class Product {
+      getAllProducts = () => {
+        return products;
+      };
+
+      getSingleProduct = (id) => {
+        const product = products.find((product) => product.id === id);
+        return product;
+      };
+
+      deleteSingleProduct = (id) => {
+        const filteredProducts = products.filter((product) => product.id !== id);
+        return filteredProducts;
+      };
+    }
+
+    module.exports = Product;
+
+  // from any file
+  const Product = require('./productsController');
+
+  // Create an instance of the Product class
+  const productInstance = new Product();
+
+  // Use the methods
+  const allProducts = productInstance.getAllProducts();
+  console.log('All Products:', allProducts);
+
+  const singleProduct = productInstance.getSingleProduct('2');
+  console.log('Single Product:', singleProduct);
+
+  const productsAfterDelete = productInstance.deleteSingleProduct('1');
+  console.log('Products after delete:', productsAfterDelete);
+  ```
+
+#### [Built-in module - os and path module](https://youtu.be/EHo7KNPawhw)
 
 - Example of os module
 
@@ -191,7 +266,7 @@
   };
   ```
 
-### [1.6 Built-in module - path module]
+#### [Built-in module - path module]
 
 - Example of path module
 
@@ -212,7 +287,7 @@ exports.pathInfo = () => {
 };
 ```
 
-### [1.7 Built-in module - url module]
+#### [Built-in module - url module]
 
 ```js
 const url = require("url");
@@ -236,7 +311,7 @@ console.log(data.get("maxPrice"));
 console.log(data.get("sortBy"));
 ```
 
-### [1.8 Built-in module - fs module]
+#### [Built-in module - fs module]
 
 - managing file system: create, read, update, rename, delete
 
@@ -300,7 +375,7 @@ fs.unlink("test2.txt", (err) => {
 });
 ```
 
-### [1.9 Built-in module - http module](https://youtu.be/PmLJO403hvc)
+#### [Built-in module - http module](https://youtu.be/PmLJO403hvc)
 
 - Example of a node.js http server
 
