@@ -1,19 +1,22 @@
-# Complete Backend Tutorial
+# Node, Express, MongoDB, API Documentation, Authentication Tutorial
 
 - prerqusities: javascript, typescript
 
-- 1. Node.js
-- 2. Express.js
-- 3. MongoDB
-- 4. Authentication
+## Table of Contents
+
+1. [1. Node.js](#1-nodejs)
+2. [2. Express.js](#2-expressjs)
+3. [3. MongoDB](#3-mongodb-tutorial)
+4. [4. API Documentation](#4-api-documentaion-with-swagger)
+5. [5. Authentication](#5-authentication-tutorial)
 
 ## 1. Node.js
 
-## [1.1 Introduction to Node.js & setup](https://youtu.be/36R0VXmX8i8)
+### [1.1 Introduction to Node.js & setup](https://youtu.be/36R0VXmX8i8)
 
-### What is Node.js & Why Node.js?
+#### What is Node.js & Why Node.js?
 
-![profile2](./images/full-stack-blueprint-2.png)
+![profile2](./fs.excalidraw.png)
 
 - fullstack = front-end + back-end
 
@@ -444,15 +447,19 @@ const fs = require("fs");
 const PORT = 3001;
 
 const server = http.createServer((req, res) => {
-  const headers = {
-    "Access-Control-Allow-Origin": "*" /* @dev First, read about security */,
-    "Access-Control-Allow-Methods": "OPTIONS, POST, GET",
-    "Access-Control-Max-Age": 2592000, // 30 days
-    /** add other headers as per requirement */
-  };
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Request-Method', '*');
+  res.setHeader(
+    'Access-Control-Allow-Methods',
+    'OPTIONS, GET, POST, PUT, DELETE, GET'
+  );
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    'Origin, X-Requested-With, X-PINGOTHER,Content-Type, Accept'
+  );
 
   if (req.url === "/users" && req.method === "GET") {
-    res.writeHead(200, headers, { "Content-Type": "application/json" });
+    res.writeHead(200,  { "Content-Type": "application/json" });
     res.end(
       JSON.stringify({
         users: [
@@ -477,7 +484,6 @@ server.listen(PORT, () => {
   - step3 : npm init -y && npm install nodemon
   - step4 : follow the steps in heroku
   
-
 ### [1.13 Complete REST API]
 
 ```js
@@ -715,7 +721,7 @@ let products = [
 module.exports = products;
 ```
 
-## Express.js
+## 2. Express.js
 
 ### [2.0 Introduction & installation]
 
@@ -781,7 +787,7 @@ app.listen(port, () => {
   - nodemon index.ts
   - npm start -> add script in package.json -> "start": "nodemon index.ts"
 
-## [2.4 Set environment variables]
+### [2.4 Set environment variables]
 
 - check the own doc for env setup
 - create .env file && add .env file to .gitignore file
@@ -804,12 +810,12 @@ app.listen(port, () => {
 });
 ```
 
-## [2.5 API]
+### [2.5 API]
 
 - what is API? why API?
 - HTTP methods
 
-## [2.6 HTTP methods: handle GET request & api testing]
+### [2.6 HTTP methods: handle GET request & api testing]
 
 - http methods
 - http status code
@@ -836,7 +842,7 @@ app.listen(port, () => {
 });
 ```
 
-## [2.7 Response object]
+### [2.7 Response object]
 
 - response can be text, html, json
 - res.send("some text here");
@@ -871,7 +877,7 @@ app.get("/products", (request: Request, response: Response) => {
 });
 ```
 
-## [2.8 find path of a file]
+### [2.8 find path of a file]
 
 - create a util folder -> getPath.ts
 
@@ -892,7 +898,7 @@ app.get("/", (request: Request, response: Response) => {
 });
 ```
 
-## [2.9 Handling error - client and server error]
+### [2.9 Handling error - client and server error]
 
 - try to access a file which is not linked or created properly. it will give a server error
 
@@ -913,7 +919,7 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 });
 ```
 
-## [2.10 Request Object - route parameter]
+### [2.10 Request Object - route parameter]
 
 - request with route parameters - req.params.parameterName
 
@@ -933,7 +939,7 @@ app.get("/products/:id", (request: Request, response: Response) => {
 });
 ```
 
-## [2.11 Request Object - query parameter]
+### [2.11 Request Object - query parameter]
 
 - request with query parameter - req.query.parameterName
 - query parameter has question mark; search something on google.
@@ -1001,7 +1007,7 @@ app.get("/products", (req, res) => {
 });
 ```
 
-## [2.12 Request Object - header requests]
+### [2.12 Request Object - header requests]
 
 - example of how to get data header requests
 
@@ -1012,7 +1018,7 @@ app.get("/products", (req, res) => {
   });
   ```
 
-## [2.13 Request Object - body data & HTTP methods: POST]
+### [2.13 Request Object - body data & HTTP methods: POST]
 
 - **[handling-any-post-data-in-express](https://codex.so/handling-any-post-data-in-express)**
 - request with json data / form data inside body - req.body.parameterName
@@ -1054,7 +1060,7 @@ app.post("/products", (request: Request, response: Response) => {
   });
   ```
 
-## [2.14 HTTP methods: handle DELETE request & api testing]
+### [2.14 HTTP methods: handle DELETE request & api testing]
 
 ```js
 app.delete("/products/:id", (request: Request, response: Response) => {
@@ -1072,9 +1078,9 @@ app.delete("/products/:id", (request: Request, response: Response) => {
 });
 ```
 
-## [2.15 HTTP methods: handle PUT request & api testing]
+### [2.15 HTTP methods: handle PUT request & api testing]
 
-## [2.16 express Router & path shotcut]
+### [2.16 express Router & path shotcut]
 
 - use morgan package for getting more info about routing on console
 
@@ -1097,7 +1103,7 @@ import productRouter from "./routes/products";
 app.use("/api/products", productRouter);
 ```
 
-## [2.17 MVC Architecture - SOC]
+### [2.17 MVC Architecture - SOC]
 
 - separate routes
 - separate logics with controllers
@@ -1122,7 +1128,7 @@ export let products = [
 ];
 ```
 
-## [2.18 Regular expression and wild card]
+### [2.18 Regular expression and wild card]
 
 ```js
 router.get("/:id([0-9]+)", getProduct);
@@ -1156,7 +1162,7 @@ router.get("*", (req, res) => {
 });
 ```
 
-## [2.19 Middleware and its type]
+### [2.19 Middleware and its type]
 
 - what is middleware?
 - why middleware?
@@ -1198,16 +1204,16 @@ export const addProduct = (request: Request, response: Response) => {
 };
 ```
 
-## [2.20 Server side validation with express-validator]
+### [2.20 Server side validation with express-validator]
 
 - `npm i express-validator @types/express-validator`
 - [Source code](https://github.com/anisul-Islam/express-validator-tutorial)
 
-## [2.21 Server side validation with joi]
+### [2.21 Server side validation with joi]
 
 - [Source code](https://github.com/anisul-Islam/joi-validator-tutorial)
 
-## [2.22 How to upload file (image, video etc.)]
+### [2.22 How to upload file (image, video etc.)]
 
 - `npm install express multer`
 - `npm install -D express multer`
@@ -1272,12 +1278,12 @@ app.listen(port, () => {
 });
 ```
 
-## [2.23 Express generator]
+### [2.23 Express generator]
 
 - package `npx espress-generator`
 - create a basic standard scalable folder structure with necessary codes
 
-## [2.24 cookie]
+### [2.24 cookie]
 
 - to make http request stateful (have some info stored about api call like user is signed in or not) , by default http api call are stateless
 - keep track of user activity
@@ -1327,11 +1333,11 @@ router.get("/:id", isLoggedIn, (req, res) => {
 });
 ```
 
-## [2.25 session]
+### [2.25 session]
 
-## MongoDB Tutorial
+## 3. MongoDB Tutorial
 
-## 0. SQL VS NoSQL
+### 3.1 SQL VS NoSQL
 
 - SQL stands for Structured Query Language - MySQL Database
   - It follows relational database management system
@@ -1350,7 +1356,7 @@ router.get("/:id", isLoggedIn, (req, res) => {
   - Encoding technique: JSON use UTF-8 string encoding where BSON use Binary encoding
   - Security: JSON is Human and machine Readable where BSON in only machine Readable
 
-## 1. Introduction to MongoDB
+### 3.2 Introduction to MongoDB
 
 - What is MongoDB?
 
@@ -1368,7 +1374,7 @@ router.get("/:id", isLoggedIn, (req, res) => {
       }
   ```
 
-## 2. Environment setup
+### 3.3 Environment setup
 
 - Download & install MongoDB
 - MongoDB Compass
@@ -1379,7 +1385,7 @@ router.get("/:id", isLoggedIn, (req, res) => {
   mongo --version (mongodb shell version)
   ```
 
-## 3. Basic command
+### 3.4 Basic command
 
 - database
 
@@ -1394,7 +1400,7 @@ router.get("/:id", isLoggedIn, (req, res) => {
     example `db.createCollection("products")`
   - drop collection : `db.collectionName.drop()`
 
-## 4. CRUD - Create Document
+### 3.5 CRUD - Create Document
 
 - database is collection of Documents
 - Field name regulations collected from MongoDB official website:
@@ -1436,7 +1442,7 @@ router.get("/:id", isLoggedIn, (req, res) => {
 
   ```
 
-## 5. CRUD - Read Document
+### 3.6 CRUD - Read Document
 
 - Read / Find data
 
@@ -1456,7 +1462,7 @@ router.get("/:id", isLoggedIn, (req, res) => {
     - example : `db.students.find({name: "x"}, {name:1})` get only field
     - example : `db.students.find({name: "x"}, {_id:0, name:1})` get only field even without mongodb \_id
 
-## 6. CRUD - Update Document
+### 3.7 CRUD - Update Document
 
 - Update Data -> $set operator helps to set update value to a field
 
@@ -1466,7 +1472,7 @@ router.get("/:id", isLoggedIn, (req, res) => {
   - find one and update data syntax: `db.collectionName.findOneAndUpdate(selection_item, update_data)`
   - example: `db.products.update({id:"1"},{$set:{price:32}})`
 
-## 7. CRUD - Delete Document
+### 3.8 CRUD - Delete Document
 
 - Delete data
 
@@ -1476,9 +1482,9 @@ router.get("/:id", isLoggedIn, (req, res) => {
   - delete many data syntax: `db.collectionName.deleteMany({selected_item})
   - delete many data syntax: `db.collectionName.deleteMany({})
 
-## 8. CRUD Operations in MongoDB Compass
+### 3.9 CRUD Operations in MongoDB Compass
 
-## 9. Node.js and mongodb connection
+### 3.10 Node.js and mongodb connection
 
 - 2 ways to connect -> with mongoose package, with mongodb package
 - method 1: with mongodb package
@@ -1508,7 +1514,7 @@ app.listen(port, async () => {
 });
 ```
 
-## 10. Mongoose schema & model
+### 3.11 Mongoose schema & model
 
 - define structure of document with validation
 - we can define default values of a field
@@ -1537,7 +1543,7 @@ const productSchema = new mongoose.Schema({
 const Product = mongoose.model("Products", productSchema);
 ```
 
-## 11. Create document from node.js
+### 3.12 Create document from node.js
 
 ```js
 const addProduct = async () => {
@@ -1558,7 +1564,7 @@ const addProduct = async () => {
 addProduct();
 ```
 
-## 12. Read document from Database in node.js & comparsion query operators
+### 3.13 Read document from Database in node.js & comparsion query operators
 
 - comparsion query operators: https://www.mongodb.com/docs/manual/reference/operator/query-comparison/
   - $eq, $ne, $gt, $lt, $gte, $lte, $in, $nin
@@ -1601,7 +1607,7 @@ const getProducts = async (req, res) => {
 getProducts();
 ```
 
-## 13. Query Operators: Logical operators
+### 3.14 Query Operators: Logical operators
 
 - $and, $or, $not, $nor
 
@@ -1624,7 +1630,7 @@ const products = await Product.find({
 const products = await Product.find({ price: { $not: { $lt: 900 } } });
 ```
 
-## 14. counting and sorting
+### 3.15 counting and sorting
 
 - countDocuments() / count()
 
@@ -1644,7 +1650,7 @@ const products = await Product.find()
 console.log(products);
 ```
 
-## 15. update data
+### 3.16 update data
 
 - update data syntax: `db.collectionName.updateOne(selection_item, update_data)`
 - update data syntax: `db.collectionName.findByIdAndUpdate(selection_item, update_data, {new: true})`
@@ -1671,7 +1677,7 @@ const products = await Product.findByIdAndUpdate(
 console.log(products);
 ```
 
-## 16. delete data
+### 3.17 delete data
 
 - example: `db.users.deleteOne({name:"anisul islam"})`
 
@@ -1684,7 +1690,7 @@ const products = await Product.findByIdAndDelete({ _id });
 console.log(products);
 ```
 
-## 17. mongoose validations
+### 3.18 mongoose validations
 
 - [official documentation](https://mongoosejs.com/docs/validation.html)
 - A common gotcha for beginners is that the unique option for schemas is not a validator.
@@ -1728,7 +1734,7 @@ Object syntax: enum: { values: ['Coffee', 'Tea'], message: '{VALUE} is not suppo
 */
 ```
 
-## 18. Custom validations
+### 3.19 Custom validations
 
 - for fulfilling own requirements based on certain situation we need to create custom validations.
 - read about email vliadation
@@ -1782,7 +1788,7 @@ phone: {
   }
 ```
 
-## 19. npm validator
+### 3.20 npm validator
 
 - `npm i validator`
 
@@ -1800,7 +1806,7 @@ email: {
   },
 ```
 
-## 20. pagination
+### 3.21 pagination
 
 ```js
 const { page = 1, limit = 10 } = req.query;
@@ -1810,7 +1816,7 @@ const products = await Product.find()
 console.log(products);
 ```
 
-## 21: export and import data in mongodb atlas
+### 3.22 export and import data in mongodb atlas
 
 ```js
 For json
@@ -1830,7 +1836,7 @@ mongodump –uri
 mongodump --uri "mongodb+srv://<your username>:<your password>@<your cluster>.mongodb.net/sample_supplies"
 ```
 
-## API Documentaion with Swagger
+## 4. API Documentaion with Swagger
 
 - install packages `npm init -y && npm install express lowdb morgan uuid cors swagger-jsdoc swagger-ui-express`
 - we can create api doc anywhere - routes/controllers
@@ -2233,7 +2239,7 @@ module.exports = {
 };
 ```
 
-## Authentication Tutorial
+## 5. Authentication Tutorial
 
 - [Authorization (403) vs Authentication (401)](http://www.differencebetween.net/technology/difference-between-authentication-and-authorization/)
 - [Authorization (403) vs Authentication (401)](https://stackoverflow.com/questions/3297048/403-forbidden-vs-401-unauthorized-http-responses)
