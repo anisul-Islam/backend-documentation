@@ -50,11 +50,11 @@
       { id: '3', title: 'apple iphone 15', price: 820 },
     ];
 
-    const printAllProducts = (products) => {
+    const getAllProducts = () => {
       console.log(products);
     };
 
-    printAllProducts(products);
+    getAllProducts(products);
   ```
 
 ### [1.3 Node js event loop]
@@ -107,10 +107,10 @@
 - console.log(process) and find the module.exports = {}
 - 3 types of module.
   - local module (own created module)
-  - built-in-modules (node.js own module)
+  - built-in-modules (node.js own module): os, path, url, fs, http
   - External modules (3rd party module mainly managed by npm)
 
-#### [Local module]
+#### [Local / own module]
 
 - version 0: without module
 
@@ -124,22 +124,22 @@
   ];
 
   const getAllProducts = () => {
-    return products;
+    console.log('All Products:', products);
   };
 
   const getSingleProduct = (id) => {
     const product = products.find((product) => product.id === id);
-    return product;
+    console.log('Single Product:', product);
   };
 
   const deleteSingleProduct = (id) => {
     const filteredProducts = products.filter((product) => product.id !== id);
-    return filteredProducts;
+    console.log('Products after delete:',filteredProducts);
   };
 
-  console.log(getAllProducts());
-  console.log(getSingleProduct('2'));
-  console.log(deleteSingleProduct('2'));
+  getAllProducts();
+  getSingleProduct('2');
+  deleteSingleProduct('2');
   ```
 
 - version 1: individual export
@@ -154,17 +154,17 @@
   ];
 
   exports.getAllProducts = () => {
-    return products;
+      console.log('All Products:', products);
   };
 
   exports.getSingleProduct = (id) => {
     const product = products.find((product) => product.id === id);
-    return product;
+    console.log('Single Product:', product);
   };
 
   exports.deleteSingleProduct = (id) => {
     const filteredProducts = products.filter((product) => product.id !== id);
-    return filteredProducts;
+    console.log('Products after delete:',filteredProducts);
   };
 
   // now use them in anywhere
@@ -175,10 +175,11 @@
 
   } = require('./productsController');
 
-  console.log('All Products:', getAllProducts());
-  console.log('Single Product:', getSingleProduct('2'));
-  console.log('Products after delete:',deleteSingleProduct('2'));
-
+    getAllProducts();
+  getSingleProduct('2');
+  deleteSingleProduct('2');
+  ```
+  
 - version 2: exporting them all at a time
   
   ```js
@@ -240,9 +241,10 @@
   console.log('Products after delete:', productsAfterDelete);
   ```
 
-#### [Built-in module - os and path module](https://youtu.be/EHo7KNPawhw)
+#### [Built-in / node.js module]
 
-- Example of os module
+- [os and path module video]((https://youtu.be/EHo7KNPawhw))
+- os module: The os module in Node.js provides a way of interacting with the operating system. It allows you to access various operating system-related information.
 
   ```js
   // os, path
@@ -252,161 +254,235 @@
   const os = require("os");
   const osInfo = () => {
     return {
-      userInfo: os.userInfo(),
-      totalMemory: os.totalmem(),
-      freeMemory: os.freemem(),
-      hostname: os.hostname(),
-      osType: os.type(),
+      userInfo: os.userInfo(), // Returns information about the currently effective user.
+      totalMemory: os.totalmem(), // Returns the total amount of system memory in bytes.
+      freeMemory: os.freemem(), // Returns the amount of free system memory in bytes.
+      hostname: os.hostname(), //Returns the host name of the operating system.
+      osType: os.type(), //Returns the operating system name.
       relase: os.release(),
-      platform: os.platform(),
-      architecture: os.arch(),
-      uptime: os.uptime(),
-      cpus: os.cpus(),
+      platform: os.platform(), // Returns the operating system platform.
+      architecture: os.arch(), // Returns the CPU architecture of the operating system.
+      uptime: os.uptime(), // Returns the system uptime in seconds.
+      cpus: os.cpus(), // Returns an array of objects containing information about each logical CPU core.
     };
   };
+  
+  //call from outside
+  console.log(osInfo());
+
   ```
 
-#### [Built-in module - path module]
-
-- Example of path module
-
-```js
-const path = require("path");
-
-const address = "backend-course/path-module.js";
-
-exports.pathInfo = () => {
-  return {
-    __dirname: __dirname,
-    __filename: __filename,
-    directoryName: path.dirname(address),
-    extensionName: path.extname(address),
-    lastPartOfPath: path.basename(address),
-    join: path.join(__dirname + "/views/index.html"),
-  };
-};
-```
-
-#### [Built-in module - url module]
-
-```js
-const url = require("url");
-
-const address = "http://localhost:8080/api/products?maxPrice=300&sortBy=ASC";
-
-// const myUrl = new URL(address);
-// console.log(myUrl.host);
-// console.log(myUrl.hostname);
-// console.log(myUrl.protocol);
-// console.log(myUrl.port);
-// console.log(myUrl.search);
-// console.log(myUrl.href);
-
-console.log(url.parse(address));
-
-const query = url.parse(address).query;
-const data = new URLSearchParams(query);
-console.log(data);
-console.log(data.get("maxPrice"));
-console.log(data.get("sortBy"));
-```
-
-#### [Built-in module - fs module]
-
-- managing file system: create, read, update, rename, delete
-
-```js
-const fs = require("fs");
-console.log(fs);
-
-// creating a file
-fs.writeFile("test.txt", "this is some demo text", (err) => {
-  // if there is 1 if else then use ternary operator
-  if (err) {
-    console.log(err);
-  } else {
-    console.log("File is created successfully");
-  }
-});
-
-// appending data to a file
-fs.appendFile("test.txt", "some extra text is added", (err) => {
-  if (err) {
-    console.log(err);
-  } else {
-    console.log("data is added successfully");
-  }
-});
-
-// reading data from a file
-fs.readFile("test.txt", "utf-8", (err, data) => {
-  if (err) {
-    console.log(err);
-  } else {
-    console.log(data);
-  }
-});
-
-// renaming an existing file
-fs.rename("test.txt", "test2.txt", (err) => {
-  if (err) {
-    console.log(err);
-  } else {
-    console.log("successfully renamed");
-  }
-});
-
-// checking a file exsits or not
-fs.exists("test2.txt", (result) => {
-  if (result) {
-    console.log("file exists");
-  } else {
-    console.log("file does not exist");
-  }
-});
-
-// deleting a file
-fs.unlink("test2.txt", (err) => {
-  if (err) {
-    console.log(err);
-  } else {
-    console.log("file is deleted successfully");
-  }
-});
-```
-
-#### [Built-in module - http module](https://youtu.be/PmLJO403hvc)
-
-- Example of a node.js http server
+- path module: The path module in Node.js provides utilities for working with file and directory paths. It's used for handling and transforming file paths.
 
   ```js
-  // Method 1
-  const http = require("http");
+  const path = require("path");
 
-  const PORT = 3000;
-  const hostName = "127.0.0.1";
+  const address = "backend-course/path-module.js";
 
-  const server = http.createServer((req, res) => {
-    // res.end("welcome to the server");
+  exports.pathInfo = () => {
+     return {
+      __dirname: __dirname, // Returns the directory name of a path.
+      __filename: __filename,
+      directoryName: path.dirname(address),
+      extensionName: path.extname(address), // path.extname(path): Returns the extension of a path.
+      lastPartOfPath: path.basename(address), // path.basename(path[, ext]): Returns the last portion of a path.
+      parsedPath: path.parse(address), // path.parse(path): Returns an object from a path string.
+      join: path.join(__dirname + '/views/index.html'), // Joins the given path segments.
+      absolutePath: path.resolve('views/index.html'), // Resolves the specified paths into an absolute path.
+    };
+  };
 
-    // end the response with a response message
-    res.end("<h1>welcome to the server</h1>");
-  });
-
-  server.listen(PORT, () => {
-    console.log(`server is running at http://${hostName}:${PORT}`);
-  });
-
-  // Method 2
-  const http = require("http");
-  http
-    .createServer((req, res) => {
-      res.end("<h1> Welcome to your first node server</h1>");
-    })
-    .listen(3000, () => {
-      console.log("server is running");
-    });
+  //call from outside
+  console.log(pathInfo());
   ```
+
+- url module: The `url` module in Node.js provides utilities for URL resolution and parsing. It's used for working with URLs. Here are some commonly used functions in the `url` module:
+
+  1. **url.format(urlObject):** Takes a parsed URL object and returns a formatted URL string.
+
+      ```javascript
+      const url = require('url');
+      const urlString = url.format({
+        protocol: 'https:',
+        hostname: 'www.example.com',
+        pathname: '/path',
+        query: { query: 'string' },
+      });
+      console.log(urlString);
+      ```
+
+  2. **url.resolve(from, to):** Resolves a target URL relative to a base URL.
+
+      ```javascript
+      const url = require('url');
+      const resolvedUrl = url.resolve('https://www.example.com/base/', 'path');
+      console.log(resolvedUrl);
+      ```
+
+  3. **new URL(input[, base]):** (Introduced in Node.js 10) URL constructor for creating URL objects.
+
+      ```javascript
+      const { URL } = require('url');
+      const myUrl = new URL('https://www.example.com/path?query=string');
+      console.log(myUrl);
+      ```
+
+  4. **urlSearchParams.toString():** (Introduced in Node.js 10) Returns the query string.
+
+      ```javascript
+      const { URLSearchParams } = require('url');
+      const params = new URLSearchParams('key1=value1&key2=value2');
+      console.log(params.toString());
+      ```
+
+  ```js
+  const url = require("url");
+
+  const address = "http://localhost:8080/api/products?maxPrice=300&sortBy=ASC";
+
+  // const myUrl = new URL(address);
+  // console.log(myUrl.host);
+  // console.log(myUrl.hostname);
+  // console.log(myUrl.protocol);
+  // console.log(myUrl.port);
+  // console.log(myUrl.search);
+  // console.log(myUrl.href);
+
+  console.log(url.parse(address));
+
+  const query = url.parse(address).query;
+  const data = new URLSearchParams(query);
+  console.log(data);
+  console.log(data.get("maxPrice"));
+  console.log(data.get("sortBy"));
+
+  // how to parse url
+  const url = require('url');
+
+  const address = '<http://localhost:8080/api/products?maxPrice=300&sortBy=ASC>';
+
+  // Parse the URL
+  const parsedUrl = new URL(address);
+
+  // Get the query parameters as an object
+  console.log(parsedUrl.searchParams);
+  const queryParams = Object.fromEntries(parsedUrl.searchParams.entries());
+
+  console.log(queryParams);
+  ```
+
+- fs module: managing file system: create, read, update, rename, delete
+
+  ```js
+  const fs = require("fs");
+  console.log(fs);
+
+  // creating a file
+  fs.writeFile("products.json", JSON.stringify([]), (err) => {
+    // if there is 1 if else then use ternary operator
+    if (err) {
+      console.log(err);
+    } else {
+      console.log("File is created successfully");
+    }
+  });
+
+  // appending data to a file
+  fs.appendFile("test.txt", "some extra text is added", (err) => {
+    if (err) {
+      console.log(err);
+    } else {
+      console.log("data is added successfully");
+    }
+  });
+
+  // reading data from a file
+  fs.readFile("test.txt", "utf-8", (err, data) => {
+    if (err) {
+      console.log(err);
+    } else {
+      console.log(data);
+    }
+  });
+
+  // renaming an existing file
+  fs.rename("test.txt", "test2.txt", (err) => {
+    if (err) {
+      console.log(err);
+    } else {
+      console.log("successfully renamed");
+    }
+  });
+
+  // checking a file exsits or not
+  fs.exists("test2.txt", (result) => {
+    if (result) {
+      console.log("file exists");
+    } else {
+      console.log("file does not exist");
+    }
+  });
+
+  // deleting a file
+  fs.unlink("test2.txt", (err) => {
+    if (err) {
+      console.log(err);
+    } else {
+      console.log("file is deleted successfully");
+    }
+  });
+  ```
+
+  - more better example for ecommerce project
+
+  ```js
+    // create a file
+    fs.writeFile('products.json', JSON.stringify([]));
+
+    // read a file
+    const getAllProducts = async () => {
+      const products = JSON.parse(await fs.readFile('./products.json', 'utf-8'));
+      console.log(products);
+      // return products;
+    };
+  ```
+
+- http module: The http module in Node.js is a core module that allows you to create HTTP servers and make HTTP requests.
+
+  - [http module](https://youtu.be/PmLJO403hvc)
+
+  - Example of a node.js http server
+
+    ```js
+    // Method 1
+    const http = require("http");
+
+    const PORT = 3000;
+    const hostName = "127.0.0.1";
+
+    const server = http.createServer((req, res) => {
+      // Set the response HTTP header with HTTP status and Content type
+      res.writeHead(200, {'Content-Type': 'text/plain'});
+
+      // end the response with a response message
+      res.end("<h1>welcome to the server</h1>");
+    });
+
+    // Listen on port 8080 and IP address 127.0.0.1
+    server.listen(PORT, () => {
+      console.log(`server is running at http://${hostName}:${PORT}`);
+    });
+
+    // Method 2
+    const http = require("http");
+    http
+      .createServer((req, res) => {
+        res.end("<h1> Welcome to your first node server</h1>");
+      })
+      .listen(3000, () => {
+        console.log("server is running");
+      });
+    ```
 
 ### [1.10 request, response and status code](https://youtu.be/lHfnjUP-N4E)
 
