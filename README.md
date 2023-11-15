@@ -179,7 +179,7 @@
   getSingleProduct('2');
   deleteSingleProduct('2');
   ```
-  
+
 - version 2: exporting them all at a time
   
   ```js
@@ -443,7 +443,20 @@
     const getAllProducts = async () => {
       const products = JSON.parse(await fs.readFile('./products.json', 'utf-8'));
       console.log(products);
-      // return products;
+    };
+    // read file
+    const getSingleProduct = async (id) => {
+      const products = JSON.parse(await fs.readFile('./products.json', 'utf-8'));
+      const product = products.find((product) => product.id === id);
+      console.log(product);
+    };
+
+    // first read then write
+    const deleteSingleProduct = async (id) => {
+      let products = JSON.parse(await fs.readFile('./products.json', 'utf-8'));
+      const filteredProducts = products.filter((product) => product.id !== id);
+      products = filteredProducts;
+      await fs.writeFile('./products.json', JSON.stringify(products));
     };
   ```
 
