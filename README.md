@@ -6,15 +6,25 @@
 
 ## Table of Contents
 
-1. [1. Node.js](#1-nodejs)
-2. [2. Express.js](#2-expressjs)
-3. [3. MongoDB](#3-mongodb-tutorial)
-4. [4. API Documentation](#4-api-documentaion-with-swagger)
-5. [5. Authentication](#5-authentication-tutorial)
+1. [Node.js](#1-nodejs)
+
+    [1.1 Introduction](#11-introduction)
+    [1.2 Environment setup](#12-environment-setup--run)
+    [1.3 Event loop](#13-event-loop)
+    [1.4 Module - Local, Built-in, External](#14-module)
+    [1.5 API](#15-api)
+    [1.6 MVC Architecture](#16-mvc-architecture)
+
+2. [Express.js](#2-expressjs)
+3. [MongoDB](#3-mongodb-tutorial)
+4. [API Documentation](#4-api-documentaion-with-swagger)
+5. [Authentication](#5-authentication-tutorial)
 
 ## 1. Node.js
 
-### [1.1 Introduction to Node.js & setup](https://youtu.be/36R0VXmX8i8)
+### 1.1 Introduction
+
+- [Introduction to node.js](https://youtu.be/36R0VXmX8i8)
 
 #### What is Node.js?
 
@@ -57,7 +67,7 @@
     getAllProducts(products);
   ```
 
-### [1.3 Node js event loop]
+### [1.3 Event loop]
 
 - Node.js is single threaded but non-blocking beacuse of event loop.
 - it is efficient because of its non blocking feature
@@ -97,14 +107,11 @@
   console.log("no need to wait for this task");
   ```
 
-### [1.4 Module](https://youtu.be/n3F1kaOfyzw)
+### 1.4 Module
 
-#### What is module? Types of module?
+- [local module](https://youtu.be/n3F1kaOfyzw)
 
-- Module is a set of functions or variables.
-- we can use es6 import, export by adding "type":"module" in package.json
-- when you have too much code in a single file you would like to separate them in multiple files so that they are reusable and modular.
-- console.log(process) and find the module.exports = {}
+- Module is a set of functions or variables. We can use es6 import, export by adding "type":"module" in package.json. When you have too much code in a single file you would like to separate them in multiple files so that they are reusable and modular. console.log(process) and find the module.exports = {}
 - 3 types of module.
   - local module (own created module)
   - built-in-modules (node.js own module): os, path, url, fs, http
@@ -240,6 +247,8 @@
   const productsAfterDelete = productInstance.deleteSingleProduct('1');
   console.log('Products after delete:', productsAfterDelete);
   ```
+
+- setup es6 module
 
 #### [Built-in / node.js module]
 
@@ -475,7 +484,9 @@
 
     const server = http.createServer((req, res) => {
       // Set the response HTTP header with HTTP status and Content type
-      res.writeHead(200, {'Content-Type': 'text/plain'});
+      // res.writeHead(200, {'Content-Type': 'text/plain'});
+      // res.writeHead(200, {'Content-Type': 'application/json'});
+      res.writeHead(200, {'Content-Type': 'text/html'});
 
       // end the response with a response message
       res.end("<h1>welcome to the server</h1>");
@@ -497,36 +508,559 @@
       });
     ```
 
-### [1.10 request, response and status code](https://youtu.be/lHfnjUP-N4E)
+### 1.5 API
 
-- req.url, req.method
-- response can be string, json, html etc.
-- [status code cheatsheet](https://devhints.io/http-status)
-- Example
+- **API**: API stands for Application Programming Interface. It's a set of rules and protocols that allows one piece of software application to interact with another.
+
+  There are different types of APIs, including:
+
+  - Web APIs (HTTP-based): Often referred to as RESTful APIs, these use HTTP methods (like GET, POST, PUT, DELETE) to perform operations on resources.
+
+  - Library APIs: These are APIs provided by programming libraries or frameworks to enable developers to use their functions and classes.
+
+  - Operating System APIs: Provide a way for software applications to interact with the operating system.
+
+  - Hardware APIs: Enable communication with hardware components.
+
+- **HTTP methods**: HTTP (Hypertext Transfer Protocol) defines several methods, or verbs, that indicate the desired action to be performed on a resource. Each HTTP method has a specific purpose and semantic meaning. Here are some of the most commonly used HTTP methods:
+
+    1. **GET:**
+      - Purpose: Retrieve data from the specified resource.
+      - Idempotent: Yes (multiple identical requests have the same effect as a single request).
+
+    2. **POST:**
+      - Purpose: Submit data to be processed to a specified resource.
+      - Idempotent: No.
+
+    3. **PUT:**
+      - Purpose: Update a resource or create a new resource if it does not exist.
+      - Idempotent: Yes.
+
+    4. **DELETE:**
+      - Purpose: Delete the specified resource.
+      - Idempotent: Yes.
+
+    5. **PATCH:**
+      - Purpose: Apply partial modifications to a resource.
+      - Idempotent: No.
+
+    6. **HEAD:**
+      - Purpose: Retrieve the headers of a resource without the body.
+      - Idempotent: Yes.
+
+    7. **OPTIONS:**
+      - Purpose: Get information about the communication options available for the target resource.
+      - Idempotent: Yes.
+
+    8. **TRACE:**
+      - Purpose: Perform a message loop-back test along the path to the target resource.
+      - Idempotent: Yes.
+
+    9. **CONNECT:**
+      - Purpose: Establish a tunnel to the server identified by a given URI.
+      - Idempotent: No.
+
+    These methods provide a standardized way for clients to interact with web servers. The idempotent property means that making the same request multiple times has the same effect as making it once. This is an important concept for safe and predictable interactions between clients and servers.
+- **Idempodent**: In the context of HTTP methods, an idempotent operation is one that can be repeated many times, and the result will be the same as if it had been performed only once. In other words, making the same request multiple times should have the same effect as making it once.
+
+  Here's a breakdown:
+
+    1. **Idempotent Methods:**
+      - **GET:** Retrieving the same resource multiple times will always yield the same result (assuming the resource hasn't changed).
+      - **PUT:** If you PUT a resource several times, it's still just a single resource with the same state.
+      - **DELETE:** Deleting a resource will result in the same state (it's gone).
+
+    2. **Non-idempotent Methods:**
+      - **POST:** Submitting a POST request multiple times may result in different resources being created or modified each time.
+
+        **Why is Idempotence Important?**
+
+        - **Predictability:** In distributed systems, especially in scenarios where requests may be retried, having idempotent operations ensures that you get predictable results.
+        - **Error Recovery:** If a request fails, you can safely retry it without worrying about unintended side effects.
+        - **Caching:** Idempotence simplifies caching. If a GET request is idempotent, you can cache its result.
+
+        In summary, idempotence ensures that repeated requests don't produce unexpected or harmful results, making interactions more reliable and easier to manage.
+
+- **Testing API with Postman**
+- **status code**
+  - [status code](https://youtu.be/lHfnjUP-N4E)
+  - [status code cheatsheet](https://devhints.io/http-status)
+  HTTP status codes are three-digit numbers returned by a server in response to a client's request. They indicate the outcome of the server's attempt to process the request. Status codes provide information about the result of the server's attempt to process the request and guide the client on how to proceed.Here are some of the commonly used HTTP status codes:
+
+      1. **1xx Informational:**
+        - **100 Continue:** The client should continue with its request.
+
+      2. **2xx Success:**
+        - **200 OK:** The request was successful.
+        - **201 Created:** The request has been fulfilled, and a new resource has been created.
+        - **204 No Content:** The server successfully processed the request, but there is no new information to send back.
+
+      3. **3xx Redirection:**
+        - **301 Moved Permanently:** The requested page has moved permanently to a new location.
+        - **302 Found (or 303 See Other):** The requested page has moved temporarily to a new location.
+
+      4. **4xx Client Error:**
+        - **400 Bad Request:** The server did not understand the request.
+        - **401 Unauthorized:** The request requires user authentication.
+        - **403 Forbidden:** The server understood the request, but it refuses to authorize it.
+        - **404 Not Found:** The requested resource could not be found.
+
+      5. **5xx Server Error:**
+        - **500 Internal Server Error:** A generic error message returned when an unexpected condition was encountered by the server.
+        - **502 Bad Gateway:** The server, while acting as a gateway or proxy, received an invalid response from an upstream server.
+        - **503 Service Unavailable:** The server is not ready to handle the request.
+
+          ```js
+            // constants/httpStatus
+            export const HttpStatus = {
+              OK: 200,
+              CREATED: 201,
+              ACCEPTED: 202,
+              NO_CONTENT: 204,
+              BAD_REQUEST: 400,
+              UNAUTHORIZED: 401,
+              FORBIDDEN: 403,
+              NOT_FOUND: 404,
+              METHOD_NOT_ALLOWED: 405,
+              CONFLICT: 409,
+              INTERNAL_SERVER_ERROR: 500,
+            };      
+          ```
+
+- **routing, request, response**
+  - **request object** : req.url, req.method
+  - **response object**: can be string, json, html etc.
 
   ```js
-  // index.js file
-  const http = require("http");
+      const http = require('http');
 
-  const PORT = 3000;
+      const { httpStatus } = require('./constants/httpStatus');
 
-  const server = http.createServer((req, res) => {
-    res.writeHead(200, { "Content-Type": "text/plain" });
-    res.write("welcome to the server");
+      const server = http.createServer((req, res) => {
+        if (req.url === '/products' && req.method === 'GET') {
+          res.writeHead(httpStatus.OK, { 'Content-Type': 'application/json' });
+          res.end(
+            JSON.stringify({
+              message: 'all products are returned',
+            })
+          );
+        } else if (req.url?.match(/\/products\/([0-9]+)/) && req.method === 'GET') {
+          res.writeHead(httpStatus.OK, { 'Content-Type': 'application/json' });
+          res.end(
+            JSON.stringify({
+              message: 'single product is returned',
+            })
+          );
+        } else if (
+          req.url?.match(/\/products\/([0-9]+)/) &&
+          req.method === 'DELETE'
+        ) {
+          res.writeHead(httpStatus.OK, { 'Content-Type': 'application/json' });
+          res.end(
+            JSON.stringify({
+              message: 'single product is deleted',
+            })
+          );
+        } else if (req.url?.match(/\/products\/([0-9]+)/) && req.method === 'PUT') {
+          res.writeHead(httpStatus.OK, { 'Content-Type': 'application/json' });
+          res.end(
+            JSON.stringify({
+              message: 'single product is updated',
+            })
+          );
+        } else if (req.url === '/products' && req.method === 'POST') {
+          res.writeHead(httpStatus.CREATED, { 'Content-Type': 'application/json' });
+          res.end(
+            JSON.stringify({
+              message: 'single product is created',
+            })
+          );
+        } else {
+          res.writeHead(httpStatus.NOT_FOUND, { 'Content-Type': 'application/json' });
+          res.end(
+            JSON.stringify({
+              message: 'route not found',
+            })
+          );
+        }
+      });
 
-    // if we want to return html as status
-    // res.writeHead(200, { "Content-Type": "text/html" });
-    // res.write("<h1>welcome to the server</h1>");
+      server.listen(3002, () => {
+        console.log(`server is running at http://localhost:3002`);
+      });
 
-    res.end();
-  });
-
-  server.listen(PORT, () => {
-    console.log(`server is running at http://localhost:${PORT}`);
-  });
   ```
 
-### [1.11 External modules | npm crash course](https://youtu.be/A8W1p8suw5I)
+### 1.6 MVC Architecture
+
+- move response to the productController
+  
+  ```js
+    const fs = require('fs/promises');
+
+    const { httpStatus } = require('../constants/httpStatus');
+
+    const getAllProducts = async (res) => {
+      const products = JSON.parse(await fs.readFile('./products.json', 'utf-8'));
+      res.writeHead(httpStatus.OK, { 'Content-Type': 'application/json' });
+      res.end(
+        JSON.stringify({
+          message: 'all products are returned',
+          payload: products,
+        })
+      );
+    };
+
+    const getSingleProduct = async (res, id) => {
+      const products = JSON.parse(await fs.readFile('./products.json', 'utf-8'));
+      const product = products.find((product) => product.id === id);
+      res.writeHead(httpStatus.OK, { 'Content-Type': 'application/json' });
+      res.end(
+        JSON.stringify({
+          message: 'single product is returned',
+          payload: product,
+        })
+      );
+    };
+
+    const deleteSingleProduct = async (res, id) => {
+      let products = JSON.parse(await fs.readFile('./products.json', 'utf-8'));
+      const filteredProducts = products.filter((product) => product.id !== id);
+      products = filteredProducts;
+      await fs.writeFile('./products.json', JSON.stringify(products));
+      res.writeHead(httpStatus.OK, { 'Content-Type': 'application/json' });
+      res.end(
+        JSON.stringify({
+          message: 'single product is deleted',
+        })
+      );
+    };
+
+    module.exports = { getAllProducts, getSingleProduct, deleteSingleProduct };
+
+  // index.js
+  const http = require('http');
+
+  const { httpStatus } = require('./constants/httpStatus');
+  const {
+    getAllProducts,
+    getSingleProduct,
+    deleteSingleProduct,
+  } = require('./controllers/productsController');
+
+  const getIdFromUrl = (url) => {
+    return url?.split['/'](2);
+  };
+
+  const server = http.createServer((req, res) => {
+    if (req.url === '/products' && req.method === 'GET') {
+      getAllProducts(res);
+    } else if (req.url?.match(/\/products\/([0-9]+)/) && req.method === 'GET') {
+      getSingleProduct(res, getIdFromUrl(req.url));
+    } else if (
+      req.url?.match(/\/products\/([0-9]+)/) &&
+      req.method === 'DELETE'
+    ) {
+      deleteSingleProduct(res, getIdFromUrl(req.url));
+    } else {
+      res.writeHead(httpStatus.NOT_FOUND, { 'Content-Type': 'application/json' });
+      res.end(
+        JSON.stringify({
+          message: 'route not found',
+        })
+      );
+    }
+  });
+
+  server.listen(3002, () => {
+    console.log(`server is running at http://localhost:3002`);
+  });
+
+  ```
+
+- create responseController - successResponse
+
+  ```js
+    // controller/responseController.js
+    exports.successResponse = (
+      res,
+      statusCode = 200,
+      message = 'success',
+      payload = {}
+
+    ) => {
+      res.writeHead(statusCode, { 'Content-Type': 'application/json' });
+      res.end(
+        JSON.stringify({
+          message: message,
+          payload: payload,
+        })
+      );
+    };
+
+       
+  // now we can clean up the controller
+  const fs = require('fs/promises');
+
+  const { httpStatus } = require('../constants/httpStatus');
+  const { successResponse } = require('./responseController');
+
+  const getAllProducts = async (res) => {
+    const products = JSON.parse(await fs.readFile('./products.json', 'utf-8'));
+    successResponse(res, httpStatus.OK, 'all products are returned', products);
+  };
+
+  const getSingleProduct = async (res, id) => {
+    const products = JSON.parse(await fs.readFile('./products.json', 'utf-8'));
+    const product = products.find((product) => product.id === id);
+    successResponse(res, httpStatus.OK, 'single product is returned', product);
+  };
+
+  const deleteSingleProduct = async (res, id) => {
+    let products = JSON.parse(await fs.readFile('./products.json', 'utf-8'));
+    const filteredProducts = products.filter((product) => product.id !== id);
+    products = filteredProducts;
+    await fs.writeFile('./products.json', JSON.stringify(products));
+    successResponse(res, httpStatus.OK, 'single product is deleted');
+  };
+
+  module.exports = { getAllProducts, getSingleProduct, deleteSingleProduct };
+  ```
+
+- create responseController - errorResponse
+
+  ```js
+  exports.errorResponse = (
+      res,
+      statusCode = 500,
+      message = 'Internal server error'
+    ) => {
+      res.writeHead(statusCode, { 'Content-Type': 'application/json' });
+      res.end(
+        JSON.stringify({
+          message: message,
+        })
+      );
+    };
+
+    // now again we can update the controller
+    const fs = require('fs/promises');
+
+    const { httpStatus } = require('../constants/httpStatus');
+    const { successResponse, errorResponse } = require('./responseController');
+
+    const getAllProducts = async (res) => {
+      try {
+        const products = JSON.parse(await fs.readFile('./products.json', 'utf-8'));
+        successResponse(res, httpStatus.OK, 'all products are returned', products);
+      } catch (error) {
+        errorResponse(res, 500, error.message);
+      }
+    };
+
+    const getSingleProduct = async (res, id) => {
+      try {
+        const products = JSON.parse(await fs.readFile('./products.json', 'utf-8'));
+        const product = products.find((product) => product.id === id);
+        if (!product) {
+          const error = new Error(`product is not found with this id ${id}`);
+          error.status = 404;
+          throw error;
+        }
+        successResponse(res, httpStatus.OK, 'single product is returned', product);
+      } catch (error) {
+        errorResponse(res, err.status, error.message);
+      }
+    };
+
+    const deleteSingleProduct = async (res, id) => {
+      try {
+        let products = JSON.parse(await fs.readFile('./products.json', 'utf-8'));
+        const product = products.find((product) => product.id === id);
+        if (!product) {
+          const error = new Error(`product is not found with this id ${id}`);
+          error.status = 404;
+          throw error;
+        }
+        const filteredProducts = products.filter((product) => product.id !== id);
+        products = filteredProducts;
+        await fs.writeFile('./products.json', JSON.stringify(products));
+        successResponse(res, httpStatus.OK, 'single product is deleted');
+      } catch (error) {
+        errorResponse(res, err.status, error.message);
+      }
+    };
+
+    module.exports = { getAllProducts, getSingleProduct, deleteSingleProduct };
+  ```
+
+- create services
+  
+  ```js
+    // services/productService
+    const { httpStatus } = require('../constants/httpStatus');
+
+    const { errorResponse } = require('../controllers/responseController');
+
+    const findProductById = (products, id) => {
+      const product = products.find((product) => product.id === id);
+      if (!product) {
+        const error = new Error(`product is not found with this id ${id}`);
+        error.status = 404;
+        throw error;
+      }
+      return product;
+    };
+    module.exports = { findProductById };
+
+  // now the controller will look like
+  const fs = require('fs/promises');
+
+  const { httpStatus } = require('../constants/httpStatus');
+  const { successResponse, errorResponse } = require('./responseController');
+  const { findProductById } = require('../services/productService');
+
+  const PRODUCTS_FILE_PATH = './products.json';
+
+  const getAllProducts = async (res) => {
+    try {
+      const products = JSON.parse(await fs.readFile(PRODUCTS_FILE_PATH, 'utf-8'));
+      successResponse(res, httpStatus.OK, 'all products are returned', products);
+    } catch (error) {
+      errorResponse(res, error.status || 500, error.message);
+    }
+  };
+
+  const getSingleProduct = async (res, id) => {
+    try {
+      const products = JSON.parse(await fs.readFile(PRODUCTS_FILE_PATH, 'utf-8'));
+      const product = findProductById(products, id);
+      successResponse(res, httpStatus.OK, 'single product is returned', product);
+    } catch (error) {
+      errorResponse(res, error.status || 500, error.message);
+    }
+  };
+
+  const deleteSingleProduct = async (res, id) => {
+    try {
+      let products = JSON.parse(await fs.readFile(PRODUCTS_FILE_PATH, 'utf-8'));
+      findProductById(products, id);
+      const filteredProducts = products.filter((product) => product.id !== id);
+      products = filteredProducts;
+      await fs.writeFile(PRODUCTS_FILE_PATH, JSON.stringify(products));
+      successResponse(res, httpStatus.OK, 'single product is deleted');
+    } catch (error) {
+      errorResponse(res, error.status || 500, error.message);
+    }
+  };
+
+  module.exports = { getAllProducts, getSingleProduct, deleteSingleProduct };
+
+
+  ```
+
+### [1.7 CRUD APP]
+
+- ecommerce crud app github link 
+
+- add update functionality
+
+  ```js
+    // add the routes first in index.js
+    else if (req.url?.match(/\/products\/([0-9]+)/) && req.method === 'PUT') {
+      updatesingleProduct(req, res, getIdFromUrl(req.url));
+    }
+
+    // add a service
+    const findProductIndexById = (products, id) => {
+      const productIndex = products.findIndex(
+        (product) => product.id === productId
+      );
+      if (productIndex === -1) {
+        const error = new Error(`product is not found with this id ${id}`);
+        error.status = 404;
+        throw error;
+      }
+      return productIndex;
+
+    };
+
+    module.exports = { findProductById, findProductIndexById };
+
+    // now add the code in controller
+    const updatesingleProduct = async (req, res, id) => {
+      try {
+        let products = JSON.parse(await fs.readFile(PRODUCTS_FILE_PATH, 'utf-8'));
+        const productIndex = findProductIndexById(products, id);
+
+        // get the data from the request body
+        let input = '';
+        req.on('data', (chunk) => {
+          input += chunk;
+        });
+
+        req.on('end', async () => {
+          const newItem = parse(input);
+          // const updatedProduct = {
+          //   id: id,
+          // };
+          // if (String(newItem.title)) {
+          //   updatedProduct.title = String(newItem.title);
+          // }
+          // if (Number(newItem.price)) {
+          //   updatedProduct.price = Number(newItem.price);
+          // }
+          // products[index] = updatedProduct;
+          products[productIndex] = {
+            ...products[productIndex], // id, title, price
+            ...newItem, // price
+          };
+
+          await fs.writeFile(PRODUCTS_FILE_PATH, JSON.stringify(products));
+          successResponse(res, httpStatus.OK, 'Product is updated successfully');
+        });
+      } catch (error) {
+        errorResponse(res, error.status || 500, error.message);
+      }
+
+    };
+  ```
+- add create functionality
+  
+  ```js
+    // first add the route
+    else if (req.url === '/products' && req.method === 'POST') {
+      createSingleProduct(req, res, getIdFromUrl(req.url));
+    }
+
+    // lets add code in controller now
+    const createSingleProduct = async (req, res, id) => {
+      try {
+        let products = JSON.parse(await fs.readFile(PRODUCTS_FILE_PATH, 'utf-8'));
+        // get the data from the request body
+        let input = '';
+        req.on('data', (chunk) => {
+          input += chunk;
+        });
+
+        req.on('end', async () => {
+          const newItem = parse(input);
+          products.push({ id: new Date().getTime().toString(), ...newItem });
+          await fs.writeFile(PRODUCTS_FILE_PATH, JSON.stringify(products));
+          successResponse(
+            res,
+            httpStatus.CREATED,
+            'Product is created successfully'
+          );
+        });
+      } catch (error) {
+        errorResponse(res, error.status || 500, error.message);
+      }
+
+    };
+  ```
+
+### [1.8 npm crash course](https://youtu.be/A8W1p8suw5I)
 
 - first initialize npm with the command `npm init` then follow the instructions
 - we can also use `npm init -y` command for ignoring the installation instructions
@@ -534,121 +1068,11 @@
 - how to install and uninstall npm packages
 - Install https://www.npmjs.com/package/random-fruits-name package
   and follow the instructions
+- add uuid package to the ecommerce crud app
 
-### [1.12 create node server and deploy on heroku](https://youtu.be/2IFDMvfJJHc)
+### 1.9 Connect front-end and backend
 
-- [node-server-demo](https://node-server-2022.herokuapp.com/)
-
-- Create 3 html pages inside views folder: index.html, about.html, contact.html
-
-  ```html
-  <!DOCTYPE html>
-  <html lang="en">
-    <head>
-      <meta charset="UTF-8" />
-      <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <title>Document</title>
-
-      <style>
-        body {
-          background-color: bisque;
-        }
-      </style>
-    </head>
-    <body>
-      <nav>
-        <ul>
-          <li><a href="/">Home</a></li>
-          <li><a href="/about">About</a></li>
-          <li><a href="/contact">Contact</a></li>
-        </ul>
-      </nav>
-      <h1>This is Home page</h1>
-    </body>
-  </html>
-  ```
-
-- create the server (server) and load the html files based on request url
-
-  ```js
-  const http = require("http");
-  const fs = require("fs");
-  const PORT = 3000;
-
-  const handleReadFile = (fileName, statusCode, req, res) => {
-    fs.readFile(fileName, "utf-8", (err, data) => {
-      if (err) {
-        console.log(err);
-      } else {
-        res.writeHead(statusCode, { "Contant-Type": "text/plian" });
-        res.write(data);
-        res.end();
-      }
-    });
-  };
-  const server = http.createServer((req, res) => {
-    if (req.url === "/" && req.method === "GET") {
-      handleReadFile("./views/index.html", 200, req, res);
-    } else if (req.url === "/about" && req.method === "GET") {
-      handleReadFile("./views/about.html", 200, req, res);
-    } else if (req.url === "/contact" && req.method === "GET") {
-      handleReadFile("./views/contact.html", 200, req, res);
-    } else {
-      handleReadFile("./views/error.html", 404, req, res);
-    }
-  });
-
-  server.listen(PORT, () => {
-    console.log(`Server is running at http://localhost:${PORT}`);
-  });
-  ```
-- How to response json 
-```js
-const http = require("http");
-const fs = require("fs");
-
-const PORT = 3001;
-
-const server = http.createServer((req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Request-Method', '*');
-  res.setHeader(
-    'Access-Control-Allow-Methods',
-    'OPTIONS, GET, POST, PUT, DELETE, GET'
-  );
-  res.setHeader(
-    'Access-Control-Allow-Headers',
-    'Origin, X-Requested-With, X-PINGOTHER,Content-Type, Accept'
-  );
-
-  if (req.url === "/users" && req.method === "GET") {
-    res.writeHead(200,  { "Content-Type": "application/json" });
-    res.end(
-      JSON.stringify({
-        users: [
-          { id: 1, name: "anisul islam", email: "anisul@gmail.com" },
-          { id: 2, name: "sufia begum", email: "sufia@gmail.com" },
-        ],
-      })
-    );
-  }
-});
-
-server.listen(PORT, () => {
-  console.log(`server is running at http://localhost:${PORT}`);
-});
-
-
-```
-- How to deploy on heroku
-
-  - step1 : const PORT = process.env.PORT || 3000;
-  - step2 : add Procfile -> `web: node index.js`
-  - step3 : npm init -y && npm install nodemon
-  - step4 : follow the steps in heroku
-  
-### [1.13 Complete REST API]
+### 1.10 Another CRUD APP: Complete REST API
 
 ```js
 // index.js
@@ -885,6 +1309,139 @@ let products = [
 module.exports = products;
 ```
 
+### 1.11 server side rendering
+
+    ```html
+      <!DOCTYPE html>
+      <html lang="en">
+        <head>
+          <meta charset="UTF-8" />
+          <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+          <title>home</title>
+        </head>
+        <body>
+          <nav>
+            <ul>
+              <li><a href="/">Home</a></li>
+              <li><a href="/about">About</a></li>
+              <li><a href="/contact">Contact</a></li>
+            </ul>
+          </nav>
+          <main>
+            <h1>welcome to home page</h1>
+          </main>
+        </body>
+      </html>
+    ```
+
+  ```html
+  // about.html
+  <!DOCTYPE html>
+  <html lang="en">
+    <head>
+      <meta charset="UTF-8" />
+      <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>about</title>
+    </head>
+    <body>
+      <nav>
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="/about">About</a></li>
+          <li><a href="/contact">Contact</a></li>
+        </ul>
+      </nav>
+      <main>
+        <h1>welcome to about page</h1>
+      </main>
+    </body>
+  </html>
+  ```
+
+  ```html
+  // contact.html
+  <!DOCTYPE html>
+  <html lang="en">
+    <head>
+      <meta charset="UTF-8" />
+      <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>contact</title>
+    </head>
+    <body>
+      <nav>
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="/about">About</a></li>
+          <li><a href="/contact">Contact</a></li>
+        </ul>
+      </nav>
+      <main>
+        <h1>welcome to contact page</h1>
+      </main>
+    </body>
+  </html>
+  ```
+
+  ```html
+  // error.html
+  <!DOCTYPE html>
+  <html lang="en">
+    <head>
+      <meta charset="UTF-8" />
+      <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>error</title>
+    </head>
+    <body>
+      <nav>
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="/about">About</a></li>
+          <li><a href="/contact">Contact</a></li>
+        </ul>
+      </nav>
+      <main>
+        <h1>page not found 404</h1>
+      </main>
+    </body>
+  </html>
+  ```
+
+  ```js
+  // index.js
+  const http = require("http");
+  const fs = require("fs");
+
+  const PORT = 3000;
+
+  const server = http.createServer((req, res) => {
+    const handleReadFile = (fileName, statusCode) => {
+      fs.readFile(fileName, (err, data) => {
+        res.writeHead(statusCode, { "Content-Type": "text/html" });
+        res.write(data);
+        res.end();
+      });
+    };
+
+    if (req.url === "/") {
+      handleReadFile("index.html", 200);
+    } else if (req.url === "/about") {
+      handleReadFile("about.html", 200);
+    } else if (req.url === "/contact") {
+      handleReadFile("contact.html", 200);
+    } else {
+      handleReadFile("error.html", 404);
+    }
+  });
+
+  server.listen(PORT, () => {
+    console.log(`server is running at http://localhost:${PORT}`);
+  });  
+  ```
+  
 ## 2. Express.js
 
 ### [2.0 Introduction & installation]
