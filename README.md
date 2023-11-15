@@ -14,6 +14,11 @@
     [1.4 Module - Local, Built-in, External](#14-module)
     [1.5 API](#15-api)
     [1.6 MVC Architecture](#16-mvc-architecture)
+    [1.7 CRUD APP](#17-crud-app)
+    [1.8 npm crash course](#18-npm-crash-course)
+    [1.9 Connect front-end and backend](#19-connect-front-end-and-backend)
+    [1.10 Another CRUD APP: Complete REST API](#110-another-crud-app-complete-rest-api)
+    [1.11 server side rendering](#111-server-side-rendering)
 
 2. [Express.js](#2-expressjs)
 3. [MongoDB](#3-mongodb-tutorial)
@@ -961,7 +966,7 @@
 
 ### [1.7 CRUD APP]
 
-- ecommerce crud app github link 
+- [ecommerce crud app github link](https://github.com/anisul-Islam/node-crud-app)
 
 - add update functionality
 
@@ -1060,7 +1065,9 @@
     };
   ```
 
-### [1.8 npm crash course](https://youtu.be/A8W1p8suw5I)
+### [1.8 npm crash course]
+
+- [1.8 npm crash course](https://youtu.be/A8W1p8suw5I)
 
 - first initialize npm with the command `npm init` then follow the instructions
 - we can also use `npm init -y` command for ignoring the installation instructions
@@ -1441,7 +1448,7 @@ module.exports = products;
     console.log(`server is running at http://localhost:${PORT}`);
   });  
   ```
-  
+
 ## 2. Express.js
 
 ### [2.0 Introduction & installation]
