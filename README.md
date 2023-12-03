@@ -8675,9 +8675,6 @@ export const findUserById = async (
     }
     return user;
   } catch (error) {
-    if (error instanceof mongoose.Error.CastError) {
-      throw createHTTPError(404, 'Invalid Id');
-    }
     throw error;
   }
 };
@@ -8696,6 +8693,29 @@ export const getUser = async (
     return successResponse(res, 200, 'Returned single user', user);
   } catch (error) {
     next(error);
+  }
+};
+```
+
+#### How to handle mongoose cast error
+
+```ts
+// service
+export const findUserById = async (
+  id: string,
+  options = {}
+): Promise<IUser> => {
+  try {
+    const user: IUser | null = await User.findById(id, options);
+    if (!user) {
+      throw createHTTPError(404, 'User not found');
+    }
+    return user;
+  } catch (error) {
+    if (error instanceof mongoose.Error.CastError) {
+      throw createHTTPError(404, 'Invalid Id');
+    }
+    throw error;
   }
 };
 ```
@@ -9334,6 +9354,9 @@ export const deleteImage = async (imagePath: string) => {
   }
 };
 
+
+// service
+
 // controller
 // DELETE: /api/users/:id => delete single user by id
 export const deleteUser = async (
@@ -9360,21 +9383,26 @@ export const deleteUser = async (
 
 ```ts
 // PUT => /api/users/:id => update the user
-export const updateUser = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+
+// route
+router.put(
+  '/:id([0-9a-fA-F]{24})',
+  isLoggedIn,
+  uploadUserPicture.single('image'),
+  updateUser
+);
+
+// service
+export const updateUserById = async (id: string, req: Request) => {
   try {
-    const id = req.params.id;
-    const user = await UserService.findUserById(id);
+    const user = await findUserById(id);
 
     const allowedFields = ['name', 'password', 'phone', 'address', 'image'];
     const updates: Record<string, unknown> = {};
 
     for (const key in req.body) {
       if (allowedFields.includes(key)) {
-         if (key === 'password') {
+        if (key === 'password') {
           // Hash the password before updating
           const hashedPassword = await bcrypt.hash(req.body[key], 10);
           updates[key] = hashedPassword;
@@ -9399,12 +9427,29 @@ export const updateUser = async (
     if (!updatedUserData) {
       throw createHTTPError(400, 'User data could not be updated');
     }
+    return updatedUserData;
+  } catch (error) {
+    if (error instanceof mongoose.Error.CastError) {
+      throw createHTTPError(404, 'Invalid Id');
+    }
+    throw error;
+  }
+};
 
+// controller
+export const updateUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const id = req.params.id;
+    const updatedUserData = await UserService.updateUserById(id, req);
     return successResponse(
       res,
       200,
-      'user is updated successfully'
-      // updatedUserData
+      'user is updated successfully',
+      updatedUserData
     );
   } catch (error) {
     next(handleJWTError(error as Error, req, res, next));
@@ -9487,18 +9532,28 @@ export const unbanUser = async (
 };
 ```
 
-#### ban/unban combined
+#### PUT => /api/users/manage-user => isLoggedIn => isAdmin => user ban/unban combined
 
 ```ts
 // service
-export const updateUserStatusById = async (id: string, isBanned: boolean, options = {}) => {
+export const handleUserActionById = async (id: string, action: string, options = {}) => {
   try {
-    const update = { isBanned };
-    const user = await User.findByIdAndUpdate(id, update, options);
-
-    if (!user) {
-      throw createHTTPError(404, 'User with this id does not exist');
+    let update;
+    let successMessage;
+    if (action === 'ban') {
+      update = { isBanned: true };
+      successMessage = 'User was banned successfully';
+    } else if (action === 'unban') {
+      update = { isBanned: false };
+      successMessage = 'User was unbanned successfully';
+    } else {
+      throw createHTTPError(400, 'Invalid action. Use "ban" or "unban"');
     }
+    const user = await User.findByIdAndUpdate(id, update, options);
+    if (!user) {
+      throw createHTTPError(404, 'user with this id does not exist');
+    }
+    return successMessage;
   } catch (error) {
     if (error instanceof mongoose.Error.CastError) {
       throw createHTTPError(404, 'Invalid Id');
@@ -9508,20 +9563,18 @@ export const updateUserStatusById = async (id: string, isBanned: boolean, option
 };
 
 // controller
-export const updateUserStatus = async (
+// PUT => /api/users/manage-user => isLoggedIn => isAdmin => ban/unban an existing user
+export const manageUserStatus = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const { id } = req.params;
-    const isBanned = req.path.includes('ban'); // Check if the route contains 'ban'
+    const filter = req.params.id;
+    const action = req.body.action;
     const options = { new: true };
-    
-    await UserService.updateUserStatusById(id, isBanned, options);
-
-    const statusMessage = isBanned ? 'banned' : 'unbanned';
-    return successResponse(res, 200, `User was ${statusMessage} successfully`);
+    const successMessage = await UserService.handleUserActionById(filter, action, options);
+    return successResponse(res, 200, successMessage);
   } catch (error) {
     next(error);
   }
@@ -9763,7 +9816,7 @@ export const isAdmin = async (
 };
 ```
 
-#### update password
+#### PUT => /api/auth/update-password -> update password
 
 
 - add route `router.put('/update-password', isLoggedIn, updateUserPassword);`
