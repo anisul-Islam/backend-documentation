@@ -8556,6 +8556,7 @@ export const findUsers = async (
       throw error;
     }
 
+    const totalUsers = await User.find().countDocuments();
     const count = await User.find(filter).countDocuments();
 
     return {
@@ -8564,6 +8565,7 @@ export const findUsers = async (
       currentPage: page,
       previousPage: page - 1 > 0 ? page - 1 : null,
       nextPage: page + 1 <= Math.ceil(count / limit) ? page + 1 : null,
+      totalUsers: totalUsers
     };
   } catch (error) {
     throw error;
@@ -9275,13 +9277,11 @@ export const findUserByEmail = async (email: string): Promise<IUser | null> => {
 #### create a JWTErrorHandler and use it from controller
 
 ```ts
-// controllers/responseHandler.ts
-export const handleJWTError = (
-  error: Error,
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+// helpers/jwtError.ts
+import { TokenExpiredError, JsonWebTokenError } from 'jsonwebtoken';
+import createHTTPError from 'http-errors';
+
+const handleJWTError = (error: Error) => {
   if (
     error instanceof TokenExpiredError ||
     error instanceof JsonWebTokenError
@@ -9295,31 +9295,22 @@ export const handleJWTError = (
     console.error(errorMessage, error);
 
     // Respond with a 401 Unauthorized status and the error message
-    return next(createHTTPError(401, errorMessage));
-  } else {
-    // Log other errors
-    console.error('Unexpected error:', error);
-    next(error);
+    throw createHTTPError(401, errorMessage);
   }
+
+  // If the error is not a JWT error, let it propagate
+  throw error;
 };
 
-// POST => /api/users/register => complete the registration
-export const activateUserAccount = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const token: string | undefined = req.body.token;
+export default handleJWTError;
 
+// service
+export const activateUser = async (token: string | undefined) => {
+  try {
     if (!token) {
       throw createHTTPError(404, 'Token not found');
     }
 
-    // const decoded = jwt.verify(
-    //   token,
-    //   dev.app.jwtAccountActivationKey
-    // ) as JwtPayload;
     const decoded = jwt.verify(
       token,
       dev.app.jwtAccountActivationKey
@@ -9327,8 +9318,28 @@ export const activateUserAccount = async (
     if (!decoded) {
       throw createHTTPError(401, 'Unable to verify the user');
     }
-    await User.create(decoded);
 
+    const userExists = await User.exists({ email: decoded.email });
+    if (userExists) {
+      throw createHTTPError(409, 'User already exists');
+    }
+
+    await User.create(decoded);
+  } catch (error) {
+    handleJWTError(error as Error);
+  }
+};
+
+// controller
+// POST => /api/users/activate => active the user profile
+export const activateUserAccount = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const token: string | undefined = req.body.token;
+    await UserService.activateUser(token);
     return successResponse(res, 201, 'user is registered successfully');
   } catch (error) {
     handleJWTError(error as Error, req, res, next);
@@ -9947,22 +9958,13 @@ export const validateUserForgetPassword = [
     );
   ```
 
-- add controller
+- add services & controller
 
 ```ts
-// step 1: email from req.body
-// step 2: isUserExist with the email
-// step 3: create a json web token
-// step 4: send reset password link via email which will include the token
-// POST => /api/auth/forget-password => handle forget password
-export const handleUserForgetPassword = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const { email } = req.body;
 
+// service
+export const forgetPassword = async (email: string) => {
+  try {
     const userData = await User.findOne({ email: email });
 
     if (!userData) {
@@ -9988,7 +9990,7 @@ export const handleUserForgetPassword = async (
         `,
     };
 
-     // Step 7: Send the email
+    // Step 7: Send the email
     try {
       await handleSendEmail(emailData);
     } catch (emailError) {
@@ -9996,16 +9998,37 @@ export const handleUserForgetPassword = async (
       console.error('Failed to send Reset password email:', emailError);
       throw createHTTPError(500, 'Failed to send verification email');
     }
+    return token;
+  } catch (error) {
+    throw error;
+  }
+};
 
-    res.status(200).json({
-      message: `Please check your email (${email}) to reset the password.`,
-      payload: token,
-    });
+// controller
+// step 1: email from req.body
+// step 2: isUserExist with the email
+// step 3: create a json web token
+// step 4: send reset password link via email which will include the token
+// POST => /api/auth/forget-password => handle forget password
+// POST => /api/auth/forget-password => handle forget password
+export const handleUserForgetPassword = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { email } = req.body;
+    const token = await forgetPassword(email);
+    return successResponse(
+      res,
+      200,
+      `Please check your email (${email}) to reset the password.`,
+      token
+    );
   } catch (error) {
     next(error);
   }
 };
-
 ```
 
 #### PUT => /api/auth/reset-password -> reset password
@@ -10044,18 +10067,15 @@ export const handleUserForgetPassword = async (
   );
   ```
 
-- create the controller
+- create the service and controller
 
 ```ts
-// PUT ->  /api/auth/reset-password -> handle reset the password
-export const handleUserResetPassword = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+// service
+export const resetPassword = async (
+  token: string,
+  password: string
+): Promise<void> => {
   try {
-    const { token, password } = req.body;
-
     const decoded = jwt.verify(
       token,
       String(dev.app.jwtResetPasswordKey)
@@ -10066,31 +10086,31 @@ export const handleUserResetPassword = async (
     }
 
     const filter = { email: decoded.email };
-    const updates = { $set: { password: password } };
+    const updates = { $set: { password: bcrypt.hashSync(password, 10) } };
     const options = { new: true };
     const updatedUser = await User.findOneAndUpdate(filter, updates, options);
 
     if (!updatedUser) throw createHTTPError(400, 'password reset failed');
+  } catch (error) {
+    handleJWTError(error as Error);
+  }
+};
+
+// PUT ->  /api/auth/reset-password -> handle reset the password
+// PUT ->  /api/auth/reset-password -> handle reset the password
+export const handleUserResetPassword = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { token, password } = req.body;
+    const tokenData = await resetPassword(token, password);
     res.status(200).json({
       message: 'password reset successful',
-      payload: token,
+      payload: tokenData,
     });
   } catch (error) {
-    if (
-      error instanceof TokenExpiredError ||
-      error instanceof JsonWebTokenError
-    ) {
-      const errorMessage =
-        error instanceof TokenExpiredError
-          ? 'Token has expired'
-          : 'Invalid Token';
-
-      // Log the error
-      console.error(errorMessage, error);
-
-      // Respond with a 401 Unauthorized status and the error message
-      return next(createHTTPError(401, errorMessage));
-    } 
     next(error);
   }
 };
