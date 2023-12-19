@@ -1592,8 +1592,6 @@ app.listen(port, () => {
   export type ProductInput = Omit<Product, 'id'>;
   ```
 
-
-
 ### [2.6 HTTP methods: handle GET request & api testing]
 
 - http methods
@@ -7543,33 +7541,7 @@ const exportUsers = async (req, res) => {
 
 ## 7. MERN Full-stack Ecommerce Website
 
-### 7.0 best practices for rest api namings
-
-When it comes to naming endpoints in a RESTful API, following best practices can enhance the clarity, maintainability, and consistency of your API design. While specific conventions may vary, here are some widely accepted best practices for naming REST API endpoints:
-
-1. Use nouns to represent resources: Use plural nouns to represent resources in your API endpoints. For example, `/users` instead of `/user` for a collection of users.
-
-2. Use hierarchical structure for nested resources: If your API has nested resources, represent them using a hierarchical structure in the endpoint naming. For example, `/users/{userId}/posts` represents the posts belonging to a specific user.
-
-3. Use specific resource identifiers: Use specific identifiers to represent individual resources. For example, use `/users/{userId}` to retrieve a specific user by their unique identifier.
-
-4. Use HTTP methods to indicate actions: Use appropriate HTTP methods (verbs) to indicate the action being performed on a resource. For example, use `GET` to retrieve a resource, `POST` to create a new resource, `PUT` to update a resource, and `DELETE` to delete a resource.
-
-5. Avoid using verbs in endpoint URLs: Instead of including verbs in endpoint URLs, let the HTTP methods represent the action. For example, use `/users/{userId}` instead of `/getUser/{userId}`.
-
-6. Use query parameters for filtering, sorting, and pagination: For filtering, sorting, or paginating resource collections, use query parameters. For example, `/users?role=admin` to filter users by role or `/users?limit=10&page=2` to retrieve a paginated list of users.
-
-7. Be consistent with naming conventions: Establish consistent naming conventions throughout your API. This promotes predictability and simplifies API consumption for clients. For example, if you use `snake_case` for naming resources (`/user_roles`) or `kebab-case` (`/user-roles`), ensure consistency across all endpoints.
-
-8. Use versioning for APIs: If you anticipate making breaking changes to your API in the future, consider incorporating versioning in the URL. For example, `/v1/users` or `/v2/users` to distinguish between different versions of the API.
-
-9. Keep endpoints concise and meaningful: Use descriptive and concise endpoint names that convey the purpose of the operation. Prioritize clarity and readability over brevity.
-
-Remember that these are general best practices, and you should adapt them to fit the specific requirements and conventions of your project. It's also a good practice to document your API endpoints and provide clear documentation to help other developers understand how to interact with your API effectively.
-
-userRouter.get('/:id([0-9a-fA-F]{24})', isLoggedIn, getUserById);
-
-### 7.1 Project planning (Editable)
+### 7.0 Planning for E-commerce MERN Stack project
 
 - /test -> health check (D)
 
@@ -7698,7 +7670,162 @@ userRouter.get('/:id([0-9a-fA-F]{24})', isLoggedIn, getUserById);
   `npm install express cors http-errors multer body-parser bcrypt jsonwebtoken nodemailer cookie-parser`
   `npm install --save-dev morgan nodemon`
 
-### 7.2 Bootstrap the Project
+### 7.1 best practices for rest api namings
+
+When it comes to naming endpoints in a RESTful API, following best practices can enhance the clarity, maintainability, and consistency of your API design. While specific conventions may vary, here are some widely accepted best practices for naming REST API endpoints:
+
+1. Use nouns to represent resources: Use plural nouns to represent resources in your API endpoints. For example, `/users` instead of `/user` for a collection of users.
+
+2. Use hierarchical structure for nested resources: If your API has nested resources, represent them using a hierarchical structure in the endpoint naming. For example, `/users/{userId}/posts` represents the posts belonging to a specific user.
+
+3. Use specific resource identifiers: Use specific identifiers to represent individual resources. For example, use `/users/{userId}` to retrieve a specific user by their unique identifier.
+
+4. Use HTTP methods to indicate actions: Use appropriate HTTP methods (verbs) to indicate the action being performed on a resource. For example, use `GET` to retrieve a resource, `POST` to create a new resource, `PUT` to update a resource, and `DELETE` to delete a resource.
+
+5. Avoid using verbs in endpoint URLs: Instead of including verbs in endpoint URLs, let the HTTP methods represent the action. For example, use `/users/{userId}` instead of `/getUser/{userId}`.
+
+6. Use query parameters for filtering, sorting, and pagination: For filtering, sorting, or paginating resource collections, use query parameters. For example, `/users?role=admin` to filter users by role or `/users?limit=10&page=2` to retrieve a paginated list of users.
+
+7. Be consistent with naming conventions: Establish consistent naming conventions throughout your API. This promotes predictability and simplifies API consumption for clients. For example, if you use `snake_case` for naming resources (`/user_roles`) or `kebab-case` (`/user-roles`), ensure consistency across all endpoints.
+
+8. Use versioning for APIs: If you anticipate making breaking changes to your API in the future, consider incorporating versioning in the URL. For example, `/v1/users` or `/v2/users` to distinguish between different versions of the API.
+
+9. Keep endpoints concise and meaningful: Use descriptive and concise endpoint names that convey the purpose of the operation. Prioritize clarity and readability over brevity.
+
+Remember that these are general best practices, and you should adapt them to fit the specific requirements and conventions of your project. It's also a good practice to document your API endpoints and provide clear documentation to help other developers understand how to interact with your API effectively.
+
+userRouter.get('/:id([0-9a-fA-F]{24})', isLoggedIn, getUserById);
+
+### 7.2 Project planning (Editable)
+
+- /test -> health check (D)
+
+  - setup morgan
+  - create responseHandler - errorResponse, successResponse
+  - handle http errors
+  - test from Postman
+
+- /seed -> seeding some data (D)
+
+  - crate dummy data
+  - store in database
+
+- /api/users (D)
+
+  - POST /register -> create the user account (D)
+    - get multi-part form data from the request body using multer
+    - input validation check -> presence, image size, user exist
+    - password hashing with bcrypt
+    - create a jwt for storing user data temporarily
+    - send email with nodemailer (SMPTP gmail username, password)
+  - POST /activate -> activate the user account (D)
+    - get the jwt from request
+    - check existance of jwt
+    - verify the jwt & decode the data
+    - create & save the new user
+  - GET /profile -> get the user account (D)
+    - get the id from request body
+    - findById()
+    - send response based on user found or not
+    - handle the mongoose Cast error
+  - DELETE /:id -> delete the user account (D)
+    - get the id from request body
+    - findById(id)
+    - if found delete the image from the server folder
+    - findByIdAndDelete(id)
+    - clear the cookies
+    - send response
+  - PUT /:id -> update the user account (D)
+    - get the data from request body and params
+    - create filter, updates, options
+    - check image exist -> image size -> change updates
+    - findByIdAndUpdate(filter, updates, options)
+    - if user was updated then send response
+  - PUT /update-password/:id(D) -> update the password
+    - create the express-validator for validating user inputs
+    - find user by email; not found response
+    - check password match or not
+    - update user password & send response
+  - POST /forget-password (D) -> forget the password
+    - click on forget password option in login page
+    - load forget password page - a form where user will give their email & make request to backend for verifying the email
+  - PUT /reset-password (D) -> reset the password
+    - click the email for forget password
+    - if user is verified based on token then show the reset-password page in front-end
+    - provide new password and update the password in database
+  - PUT - Admin /ban/:id (D) -> ban the user
+  - PUT - Admin /unban/:id (D) -> unban the user
+  - GET - Admin /export-users (D) -> export all the users
+  - GET - Admin - /all-users -> get all users including search & pagination (D)
+    - get data from request body
+    - search users using regex
+    - include pagination
+    - send response
+
+- /api/auth (JWT Auth)
+
+  - POST /login -> isLoggedOut -> user login (D)
+    - middlewares: validateUserLogin, runValidation using express-validator, isLoggedOut
+    - extract request body
+    - check user's existance
+    - compare the password & return response
+    - check user is banned & return response
+    - create jwt token with an expiry time
+    - create http only cookie with less time
+  - POST /logout -> isLoggedIn -> user logout (D)
+    - clear the cookie
+    - send the response
+  - GET /refresh -> get refresh token (D)
+    - get old access token from cookie
+    - verify old token
+    - if verified - clear exisitng cookie, create refresh token (new token), cookie, return refresh token
+
+- Middleware
+
+  - isLoggedIn (D)
+  - isLoggedOut (D)
+  - isAdmin (D)
+  - uploadFile (D)
+  - getRefreshToken
+  - userValidation (D)
+  - runValidation (D)
+
+- /api/categories (CRUD)
+
+  - POST / -> create the category (Admin)
+  - GET / -> get all the categories (Admin)
+  - GET /:id -> get single category (Admin)
+  - POST / -> create a category (Admin)
+  - DELETE /:id -> delete a category (Admin)
+  - PUT /:id -> update a category (Admin)
+
+- /api/products (CRUD)
+
+  - POST / -> create the product (Admin)
+  - GET / -> get all the products
+  - GET /:id -> get single product
+  - POST / -> create a blog (Admin)
+  - DELETE /:id -> delete a product (Admin)
+  - PUT /:id -> update a product (Admin)
+
+- /api/orders (CRUD)
+
+  - POST / -> create the order (User/Admin)
+  - GET / -> get the order (User/Admin)
+  - GET /all-orders -> get all the orders (Admin)
+  - DELETE /:id -> delete an order (Admin)
+  - PUT /:id -> update an order (Admin)
+
+- /api/payment
+
+  - GET /token -> get the payment token (User/Admin)
+  - POST /process-payment -> process the payment (User/Admin)
+
+- package that we will need
+  `npm install express cors http-errors multer body-parser bcrypt jsonwebtoken nodemailer cookie-parser`
+  `npm install --save-dev morgan nodemon`
+
+### 7.3 Bootstrap the Project
 
 - create frontend and backend folders for the project. Inside the backend folder create the src folder (create src/indexindex.ts for server) and there create the following folders:  `mkdir models controllers routes config middlewares public`
 - Environment setup:
@@ -7774,7 +7901,7 @@ ts
 
 - `tsc -w` If you want tsc (TypeScript compiler) to watch for changes and recompile your TypeScript files automatically,
 
-### 7.3 Create and run the basic server
+### 7.4 Create and run the basic server
 
 - `npm install express`
 
@@ -7788,7 +7915,7 @@ ts
   });
   ```
 
-### 7.4 handle http requests and responses
+### 7.5 handle http requests and responses
 
 ```ts
 // index.ts
@@ -7799,9 +7926,10 @@ app.get('/test', (req: Request, res: Response) => {
 });
 ```
 
-### 7.5 nodemon and morgan package
+### 7.6 nodemon, cors and morgan package
 
 - install nodemon and setup the script
+- install cors `npm i cors`  `npm i --save-dev nodemon morgan @types/cors @types/morgan`
 - update the package.json
 
   ```json
@@ -7814,15 +7942,24 @@ app.get('/test', (req: Request, res: Response) => {
   ```
 
 ```ts
-// npm i --save-dev morgan @types/morgan
-
 // index.ts
 import morgan from 'morgan';
+import cors from 'cors';
 
-app.use(morgan('dev'));
+
+// Define an array of allowed origins
+const allowedOrigins = ['http://example1.com', 'http://example2.com', 'http://example3.com'];
+
+// Enable CORS for the allowed origins
+const corsOptions = {
+  origin: allowedOrigins,
+  optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
+};
+
+app.use(cors(corsOptions));
 ```
 
-### 7.6 API Testing
+### 7.7 API Testing
 
 - for api testing - Postman, Insomnia, ThunderClient, Advanced REST client chorme extension, CURL -> run the system: curl <http://localhost:3000/> --include
 
@@ -7841,7 +7978,7 @@ app.use(morgan('dev'));
   ```
 - open thunderclient and create a collection -> add the test request and test response
 
-### 7.7 Middleware
+### 7.8 Middleware
 
 - middleware concept
   - A function that has request, response and next function
@@ -7879,7 +8016,7 @@ app.get('/api/user', isLoggedIn, (req, res) => {
 
 - types of middlware
 
-### 7.8 Add Error Middleware
+### 7.9 Add Error Middleware
 
 - Here are some common HTTP status codes and when they should be used:
 
@@ -7981,7 +8118,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 app.use(errorHandler);
 ```
 
-### 7.9 Basic API Security
+### 7.10 Basic API Security
 
 - `npm i express-rate-limit`
 
@@ -7997,7 +8134,7 @@ const rateLimiter = rateLimit({
 app.use(rateLimiter);
 ```
 
-### 7.10 Add winston logger
+### 7.11 Add winston logger
 
 - create a loggerController.ss file inside controller file and install `npm i winston`
 
@@ -8052,7 +8189,7 @@ explanation:
 Remember to create the `logs` directory in the same location as the logger file before running your application.
 ```
 
-### 7.11 configure env variables
+### 7.12 configure env variables
 
 - install dotenv package
 - create .env in root directory
@@ -8083,7 +8220,7 @@ Remember to create the `logs` directory in the same location as the logger file 
   });
   ```
 
-### 7.12 MVC Architecture
+### 7.13 MVC Architecture
 
 ```ts
 // index.ts
@@ -8120,7 +8257,7 @@ export const getAllUsers = (req: Request, res: Response) => {
 };
 ```
 
-### 7.13 Connect To MongoDB
+### 7.14 Connect To MongoDB
 
 - download and install MongoDB and mongodb compass
 - connect to mongodb atlas
@@ -8156,7 +8293,7 @@ export const getAllUsers = (req: Request, res: Response) => {
 
   ```
 
-### 7.14 User API
+### 7.15 User API
 
 #### Create User Model and Schema
 
@@ -8726,7 +8863,7 @@ export const findUserById = async (
 
 ![registration](./user-registration.excalidraw.png)
 
-##### upload filews with nodemailer
+##### get form data with multer and upload files in server
 
 - install multer `npm install multer @types/multer`
 - create public/images/users folder outside src folder
@@ -9386,6 +9523,151 @@ export const deleteUser = async (
     return successResponse(res, 200, 'deleted single user');
   } catch (error) {
     next(error);
+  }
+};
+```
+
+#### Store and delete files in cloudinary
+
+- [sign in to cloudinary and get the credentials](https://console.cloudinary.com/pm/c-d623f8253080e321edd6d08cb3c524/getting-started)
+
+- setup the environment variables with credentials
+
+```ts
+CLOUDINARY_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
+```
+
+- install the npm package `npm i cloudinary`
+- setup the work environment
+
+```ts
+// config/cloudinary.ts
+import { v2 as cloudinary } from 'cloudinary';
+require('dotenv').config();
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+export { cloudinary };
+
+// when activating the user
+    // if we have the image then store in the cloudinary storage
+    const image = decoded.image;
+    if (image) {
+      const response = await cloudinary.uploader.upload(image, {
+        folder: 'ecommerce23/users',
+      });
+      decoded.image = response.secure_url;
+    }
+// now store the user in database
+ await User.create(decoded);
+
+// we can make it more modular
+import { cloudinary } from '../config/cloudinary';
+
+export const uploadToCloudinary = async (
+  image: string,
+  folderName: string
+): Promise<string> => {
+  const response = await cloudinary.uploader.upload(image, {
+    folder: folderName,
+  });
+  return response.secure_url;
+};
+
+// now use it 
+// if we have the image then store in the cloudinary storage
+const image = decoded.image;
+if (image) {
+  decoded.image = await uploadToCloudinary(image, 'ecommerce23/users');
+}
+```
+
+- delete from cloudinary with public_id (already in the url)
+
+```ts
+// helpers/cloudinaryHelper.ts
+export const valueWithoutExtension = async (
+  imageUrl: string
+): Promise<string> => {
+  // Split the URL by slashes to get an array of path segments
+  const pathSegments = imageUrl.split('/');
+
+  // Get the last segment
+  const lastSegment = pathSegments[pathSegments.length - 1];
+
+  // Remove the file extension (.jpg) from the last segment
+  const valueWithoutExtension = lastSegment.replace('.jpg', '');
+
+  return valueWithoutExtension;
+};
+
+// helper
+export const deleteFromCloudinary = async (publicId: string): Promise<void> => {
+  try {
+    const response = await cloudinary.uploader.destroy(publicId);
+    if (response.result !== 'ok') {
+      throw createHTTPError(400, 'image was not deleted from cloudinary');
+    }
+    console.log('image was deleted from cloudinary');
+  } catch (error) {
+    throw error;
+  }
+};
+
+
+// in the controller
+export const deleteUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    await UserService.deleteUserById(req.params.id);
+    return successResponse(res, 200, 'deleted single user');
+  } catch (error) {
+    next(error);
+  }
+};
+
+// in the service
+// DELETE: /api/users/:id => isLoggedIn => delete single user by id
+export const deleteUserById = async (id: string, options = {}) => {
+  try {
+    const user = await User.findById(id, options);
+    if (!user) {
+      throw createHTTPError(404, 'User not found');
+    }
+
+    if (user.image) {
+      const lastPartOfPublicId = await valueWithoutExtension(user.image);
+      await deleteFromCloudinary(`ecommerce23/users/${lastPartOfPublicId}`);
+    }
+
+    // Delete user from the database
+    const deletedUser = await User.findByIdAndDelete({
+      _id: id,
+      isAdmin: false,
+    });
+
+    if (!deletedUser) {
+      throw createHTTPError(
+        404,
+        'User not found or not authorized for deletion'
+      );
+    }
+
+    return deletedUser;
+  } catch (error) {
+    if (error instanceof mongoose.Error.CastError) {
+      throw createHTTPError(400, 'Invalid Id');
+    }
+    throw error;
   }
 };
 ```
@@ -10119,7 +10401,7 @@ export const handleUserResetPassword = async (
 
 #### refresh token (needs to be done)
 
-### 7.15 Category API (not completed)
+### 7.16 Category API
 
 #### Category Schema & Model
 
@@ -10533,7 +10815,7 @@ export const handleUpdateCategory = async (
 
 ```
 
-### 7.16 Product API
+### 7.17 Product API
 
 - Planning
 
@@ -11006,7 +11288,78 @@ export const handleDeleteProduct = async (
 
 ```
 
-### 7.17 Order API (not completed)
+#### store and delete product image from cloudinary
+
+```tsx
+// controller
+// POST : /products -> create product
+export const handleCreateProduct = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    // if we have file then get the path
+    const image = req.file && req.file.path;
+    const productData: IProduct = {
+      ...req.body,
+      slug: slugify(req.body.title),
+    };
+    if (image) {
+      productData.image = await uploadToCloudinary(
+        image,
+        'ecommerce23/products'
+      );
+    }
+    await productService.createProduct(productData);
+    res.status(201).send({ message: 'product is created' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// delete the product image
+// DELETE : /products/:slug -> delete a product
+export const handleDeleteProduct = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    await productService.deleteProductBySlug(req.params.slug);
+    return successResponse(res, 200, 'product deleted successfully');
+  } catch (error) {
+    next(error);
+  }
+};
+
+// delete service
+export const deleteProductBySlug = async (slug: string) => {
+  try {
+    const product = await Product.findOne({
+      slug: slug,
+    });
+    if (!product) {
+      throw createHTTPError(404, 'Product not found with this slug');
+    }
+
+    // delete image from cloudinary
+    if (product.image) {
+      const lastPartOfPublicId = await valueWithoutExtension(product.image);
+      await deleteFromCloudinary(`ecommerce23/products/${lastPartOfPublicId}`);
+    }
+
+    // delete image from database
+    await Product.findOneAndDelete({
+      slug: slug,
+    });
+  } catch (error) {
+    throw error;
+  }
+};
+```
+
+### 7.18 Order API (not completed)
 
 #### Third-Party Payment Processors
 
@@ -11382,5 +11735,138 @@ export const getAllOrdersForAdmin = async (
 };
 
 // PUT -> /api/orders/:id -> update the order status
+
+```
+
+#### 7.19 Front-end integration
+
+##### Handling error and success response in Front-end
+
+```tsx
+
+// lets make a delete request to the deleteUser
+// inside the slice
+export const deleteUser = createAsyncThunk(
+  'users/deleteUser',
+  async (id: string, { rejectWithValue }) => {
+    try {
+      await axios.delete<User[]>(`${baseURL}/users/${id}`)
+      return id
+    } catch (error) {
+      return rejectWithValue(error.response.data.message)
+    }
+  }
+)
+
+// when rejected update the error state
+ builder.addMatcher(
+      (action) => action.type.endsWith('/rejected'),
+      (state, action) => {
+        console.log(action)
+        console.error('Error deleting user:', action.error.message)
+        state.isLoading = false
+        state.error = action.error.message || 'an error occured'
+      }
+    )
+
+// inside the component
+const showToast = (message: string, type: 'success' | 'error') => {
+  const options = {
+    onClose: () => {
+      const clearAction = type === 'success' ? clearSuccess() : clearError();
+      dispatch(clearAction);
+    },
+  };
+
+  const toastId =
+    type === 'success'
+      ? toast.success(message, options)
+      : toast.error(message, options);
+
+  // Dismiss the toast after 1 second (1000 milliseconds)
+  const delay = 1000;
+  setTimeout(() => {
+    toast.dismiss(toastId);
+  }, delay);
+};
+
+useEffect(() => {
+  if (error) {
+    showToast(error, 'error');
+  }
+  if (success) {
+    showToast(success, 'success');
+  }
+}, [error, success, dispatch]);
+
+// add the action creator in the slice
+clearError: (state) => {
+  state.error = null;
+};
+```
+
+##### Handling user login in front-end
+
+```tsx
+// in slice
+export const loginUser = createAsyncThunk('users/loginUser', async (user: object) => {
+  const response = await axios.post(`${baseURL}/auth/login`, user)
+  return response.data
+})
+
+// in extra reducer
+ builder.addCase(loginUser.fulfilled, (state, action) => {
+      // check cookie in your browser document.cookie
+      // check the network success response and check access_token
+      state.isLoggedIn = true
+      state.userData = action.payload.payload
+      localStorage.setItem(
+        'loginData',
+        JSON.stringify({
+          isLoggedIn: state.isLoggedIn,
+          userData: state.userData
+        })
+      )
+    })
+
+// in login component
+ dispatch(loginUser(user))
+ navigate(
+        pathName ? pathName : `/dashboard/${userData && userData.isAdmin ? 'admin' : 'user'}`
+      )
+
+// go to user dashboard and update things everywhere where you are using userData.role
+// update the user profile page
+// use userData.isAdmin condition
+```
+
+##### Handling user logout in front-end
+
+```tsx
+
+export const logoutUser = createAsyncThunk('users/logoutUser', async () => {
+  const response = await axios.post(`${baseURL}/auth/logout`)
+  return response.data
+})
+
+ builder.addCase(logoutUser.fulfilled, (state) => {
+      // check cookie in your browser document.cookie
+      state.isLoggedIn = false
+      state.userData = null
+      localStorage.setItem(
+        'loginData',
+        JSON.stringify({
+          isLoggedIn: state.isLoggedIn,
+          userData: state.userData
+        })
+      )
+    })
+
+// dispatch the logout user
+```
+
+##### Handling user profile in front-end
+
+```tsx
 
 ```
